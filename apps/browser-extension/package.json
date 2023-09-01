@@ -1,0 +1,34 @@
+{
+  "name": "browser-extension",
+  "version": "0.0.0",
+  "author": "**",
+  "description": "",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "chrome-extension",
+    "preact",
+    "vite"
+  ],
+  "engines": {
+    "node": ">=16.20.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "echo \"No linting configured\"",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "preact": "^10.8.2"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "1.0.14",
+    "@preact/preset-vite": "2.5.0",
+    "@types/chrome": "0.0.240",
+    "typescript": "5.1.3",
+    "vite": "^2.9.0",
+    "vite-plugin-zip-pack": "^1.0.5",
+    "@vitejs/plugin-react": "^1.3.2"
+  }
+}
