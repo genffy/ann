@@ -1,2 +1,11 @@
-<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1656516475589" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2226" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256"><defs><style type="text/css">@font-face { font-family: feedback-iconfont; src: url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff2?t=1630033759944") format("woff2"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff?t=1630033759944") format("woff"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.ttf?t=1630033759944") format("truetype"); }
-</style></defs><path d="M512 0C228.266667 0 0 228.266667 0 512s228.266667 512 512 512 512-228.266667 512-512S795.733333 0 512 0z m224 727.466667c0 23.466667-17.066667 40.533333-40.533333 40.533333H328.533333c-21.333333 0-40.533333-19.2-40.533333-40.533333V296.533333c0-23.466667 17.066667-40.533333 40.533333-40.533333h366.933334c21.333333 0 40.533333 19.2 40.533333 40.533333v430.933334z" fill="#673ab8" p-id="2227"></path><path d="M473.6 727.466667h221.866667V411.733333H473.6v315.733334zM328.533333 727.466667h106.666667V411.733333h-106.666667v315.733334zM328.533333 296.533333v74.666667h369.066667V298.666667H328.533333z" fill="#673ab8" p-id="2228"></path></svg>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_417_5)">
+<path d="M128 0C57.0667 0 0 57.0667 0 128C0 198.933 57.0667 256 128 256C198.933 256 256 198.933 256 128C256 57.0667 198.933 0 128 0ZM184 181.867C184 187.733 179.733 192 173.867 192H82.1333C76.8 192 72 187.2 72 181.867V74.1333C72 68.2667 76.2667 64 82.1333 64H173.867C179.2 64 184 68.8 184 74.1333V181.867Z" fill="#673AB8"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M98.8824 133.3L120.059 75H104.176L83 133.3V181H98.8824L114.765 133.3H98.8824ZM157.118 133.3L135.941 75H151.824L173 133.3V181H157.118L141.235 133.3H157.118Z" fill="#673AB8"/>
+</g>
+<defs>
+<clipPath id="clip0_417_5">
+<rect width="256" height="256" fill="white"/>
+</clipPath>
+</defs>
+</svg>

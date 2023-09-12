@@ -1,4 +1,4 @@
 # extend default
-
+/build
 # secrets
 secrets.*.js

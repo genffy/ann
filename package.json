@@ -7,9 +7,12 @@
     "initenv": "source $HOME/.nvm/nvm.sh; nvm use && pnpm i -g pnpm@8.6.7",
     "clean": "find . -name 'node_modules' -exec rm -rf '{}' \\;",
     "format": "prettier --write '**/*.{tsx,ts,json,css,scss,md}'",
-    "ext:dev": "pnpm run -C apps/browser-extension dev",
+    "ext:dev": "pnpm run -C apps/browser-extension dev:crx",
     "client:dev": "pnpm run -C apps/client dev",
-    "server:dev": "pnpm run -C apps/server dev"
+    "server:dev": "pnpm run -C apps/server dev",
+    "ext:build": "pnpm run -C apps/browser-extension build:crx",
+    "client:build": "pnpm run -C apps/client build",
+    "server:build": "pnpm run -C apps/server build"
   },
   "dependencies": {
     "prettier": "^3.0.3",
