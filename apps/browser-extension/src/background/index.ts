@@ -1,13 +1,26 @@
 import { chromeAPI } from './chrome-api';
 import { Extension } from './extension';
 import type { ExternalMessage } from './messages';
-
+import ShareOptions from '../content/share'
 /**
  * Initialize the extension's Service Worker / background page.
  *
  * This is exported for use in tests.
  */
 export async function init() {
+  function initContextMenu() {
+
+    // chrome.contextMenus.removeAll()
+    console.log(ShareOptions.share)
+    var shareParentId = chrome.contextMenus.create({
+      "title": "分享到...",
+      "contexts": ["page"]
+    }, function () {
+      console.log(chrome.runtime.lastError)
+    })
+  }
+  initContextMenu()
+
   const extension = new Extension();
   const initialized = extension.init();
 

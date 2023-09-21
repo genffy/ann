@@ -53,6 +53,7 @@ export default defineManifest(({ mode, command }) => {
       }
     ],
     permissions: [
+      "contextMenus",
       "storage",
       "tabs",
       "scripting",
