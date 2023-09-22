@@ -15,6 +15,14 @@ export default defineManifest(({ mode, command }) => {
     description: 'Collaboratively annotate, highlight, and tag web pages and PDF documents.',
     version: `${version}`,
     manifest_version: 3,
+    version_name: `${version} (${versionName})`,
+    minimum_chrome_version: '88',
+    incognito: 'split',
+    offline_enabled: false,
+    externally_connectable: {
+      "matches": [`${bouncerUrl}*`]
+    },
+    // key,
     homepage_url: 'https://annhub.xyz',
     icons: {
       '16': 'icons/logo-16.png',
@@ -24,7 +32,13 @@ export default defineManifest(({ mode, command }) => {
     },
     action: {
       default_popup: 'popup.html',
-      default_icon: 'icons/logo-48.png',
+      default_title: 'Annhub',
+      default_icon: {
+        '16': 'icons/logo-16.png',
+        '32': 'icons/logo-34.png',
+        '48': 'icons/logo-48.png',
+        '128': 'icons/logo-128.png',
+      },
     },
     options_page: 'options.html',
     options_ui: {
@@ -67,31 +81,5 @@ export default defineManifest(({ mode, command }) => {
       type: 'module',
     },
   };
-  if (browserIsChrome) {
-    baseConfig['version_name'] = `${version} (${versionName})`;
-    baseConfig["minimum_chrome_version"] = "88";
-    baseConfig["incognito"] = "split";
-    baseConfig["offline_enabled"] = false;
-
-    if (bouncerUrl) {
-      baseConfig['externally_connectable'] = {
-        "matches": [`${bouncerUrl}*`]
-      }
-    }
-  }
-
-  if (key) {
-    baseConfig["key"] = key;
-  }
-
-  // if (browserIsFirefox) {
-  //   baseConfig["applications"] = {
-  //     gecko: {
-  //       gecko: {
-  //         "strict_min_version": "68.0"
-  //       }
-  //     }
-  //   }
-  // }
   return baseConfig
 })

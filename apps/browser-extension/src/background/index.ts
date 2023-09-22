@@ -1,7 +1,6 @@
 import { chromeAPI } from './chrome-api';
 import { Extension } from './extension';
 import type { ExternalMessage } from './messages';
-import ShareOptions from '../content/share'
 /**
  * Initialize the extension's Service Worker / background page.
  *
@@ -9,18 +8,28 @@ import ShareOptions from '../content/share'
  */
 export async function init() {
   function initContextMenu() {
-
-    // chrome.contextMenus.removeAll()
-    console.log(ShareOptions.share)
+    chrome.contextMenus.removeAll()
     var shareParentId = chrome.contextMenus.create({
+      "id": `${chromeAPI.runtime.id}share`,
       "title": "分享到...",
+      // "all"
+      // "page"
+      // "frame"
+      // "selection"
+      // "link"
+      // "editable"
+      // "image"
+      // "video"
+      // "audio"
+      // "launcher"
+      // "browser_action"
+      // "page_action"
+      // "action"
       "contexts": ["page"]
     }, function () {
       console.log(chrome.runtime.lastError)
     })
   }
-  initContextMenu()
-
   const extension = new Extension();
   const initialized = extension.init();
 
@@ -75,10 +84,18 @@ export async function init() {
   );
 
   chromeAPI.runtime.requestUpdateCheck?.().then(() => {
-    chromeAPI.runtime.onUpdateAvailable.addListener(() =>
-      chromeAPI.runtime.reload(),
-    );
+    chromeAPI.runtime.onUpdateAvailable.addListener(() => {
+      initContextMenu()
+      chromeAPI.runtime.reload()
+    });
   });
 
   await initialized;
+}
+
+// nb. We use `globalThis` for the global object because it is `window` in Karma
+// tests but `self` in the real extension's Service Worker.
+const inTests = '__karma__' in globalThis;
+if (!inTests) {
+  init();
 }

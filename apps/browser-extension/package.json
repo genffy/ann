@@ -14,8 +14,8 @@
     "node": ">=16.20.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "vite --mode chrome",
+    "build": "tsc && vite build --mode chrome",
     "dev:crx": "vite --mode chrome",
     "build:crx": "tsc && vite build --mode chrome",
     "lint": "echo \"No linting configured\"",

@@ -12,7 +12,7 @@ const icons = {
   },
   inactive: {
     19: 'icons/icon-inactive.png',
-    38: 'icons/icon-inactive@2x.png',
+    38: 'icons/icon-inactive-2x.png',
   },
 };
 
