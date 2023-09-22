@@ -1,6 +1,10 @@
-import { PreactDOMAttributes } from "preact";
+import { Component, PreactDOMAttributes } from "preact";
 import styles from './styles.module.css'
 
-export function Share(props: PreactDOMAttributes) {
-  return <div {...props} className={`${styles.share}`} />
+export class Share extends Component {
+  render(props) {
+    return (
+      <div {...props} className={`${styles.share}`} >据说可以用来分享的</div>
+    )
+  }
 }

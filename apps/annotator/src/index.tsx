@@ -1,6 +1,7 @@
 import { render } from 'preact';
 import preactLogo from './assets/preact.svg';
 import './style.css';
+import '../lib/main.ts';
 
 export function App() {
 	return (
@@ -8,6 +9,8 @@ export function App() {
 			<a href="https://preactjs.com" target="_blank">
 				<img src={preactLogo} alt="Preact logo" height="160" width="160" />
 			</a>
+			<ann-share name="Billy Jo"></ann-share>
+			<ann-dialog closable status="success" />
 			<h1>Get Started building Vite-powered Preact Apps </h1>
 			<section>
 				<Resource

@@ -1,6 +1,8 @@
-import { PreactDOMAttributes } from "preact";
+import { Component } from "preact";
 import styles from './styles.module.css'
 
-export function Dialog(props: PreactDOMAttributes) {
-  return <div {...props} className={`${styles.dialog}`} />
+export class Dialog extends Component {
+  render(props) {
+    return <div {...props} className={`${styles.dialog}`} >xxxx</div>
+  }
 }
