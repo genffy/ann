@@ -5,10 +5,10 @@
  * also configure the client to focus on a specific annotation or group.
  */
 export type ActivateMessage = {
-  type: 'activate';
+  type: 'activate'
 
   /** URL to navigate tab to, before activating extension. */
-  url?: string;
+  url?: string
 
   /**
    * Fragment indicating the annotations or groups that the client should
@@ -17,14 +17,14 @@ export type ActivateMessage = {
    * The format of this is the same as the `#annotations:` and related fragments
    * understood by the client.
    */
-  query?: string;
-};
+  query?: string
+}
 
 /**
  * Query whether the extension is installed and what features it supports.
  */
 export type PingMessage = {
-  type: 'ping';
+  type: 'ping'
 
   /**
    * List of features to test for.
@@ -33,11 +33,11 @@ export type PingMessage = {
    * in the response. Note this field is missing from the response of older
    * extension versions.
    */
-  queryFeatures?: string[];
-};
+  queryFeatures?: string[]
+}
 
 /**
  * Type of a request sent to the extension from an external website,
  * such as the bouncer (annhub.xyz) service.
  */
-export type ExternalMessage = PingMessage | ActivateMessage;
+export type ExternalMessage = PingMessage | ActivateMessage

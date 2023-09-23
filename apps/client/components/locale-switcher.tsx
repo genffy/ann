@@ -17,7 +17,7 @@ export default function LocaleSwitcher() {
     <div>
       <p>Locale switcher:</p>
       <ul>
-        {i18n.locales.map((locale) => {
+        {i18n.locales.map(locale => {
           return (
             <li key={locale}>
               <Link href={redirectedPathName(locale)}>{locale}</Link>

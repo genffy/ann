@@ -6,12 +6,12 @@
  */
 export type Query = {
   /** ID of the direct-linked annotation. */
-  annotations?: string;
+  annotations?: string
   /** Filter query for the sidebar. */
-  query?: string;
+  query?: string
   /** ID of the direct-linked group. */
-  group?: string;
-};
+  group?: string
+}
 
 /**
  * Extracts the direct-linking query from the URL if any.
@@ -27,24 +27,24 @@ export type Query = {
 export function directLinkQuery(url: string): Query | null {
   // Annotation IDs are url-safe-base64 identifiers
   // See https://tools.ietf.org/html/rfc4648#page-7
-  const idMatch = url.match(/#annotations:([A-Za-z0-9_-]+)$/);
+  const idMatch = url.match(/#annotations:([A-Za-z0-9_-]+)$/)
   if (idMatch) {
-    return { annotations: idMatch[1] };
+    return { annotations: idMatch[1] }
   }
 
-  const queryMatch = url.match(/#annotations:query:(.*)$/);
+  const queryMatch = url.match(/#annotations:query:(.*)$/)
   if (queryMatch) {
-    const query = decodeURIComponent(queryMatch[1]);
-    return { query };
+    const query = decodeURIComponent(queryMatch[1])
+    return { query }
   }
 
   // Group IDs (and other "pubids" in h) are a subset of ASCII letters and
   // digits. As a special exception, the "Public" group has underscores in its
   // ID ("__world__").
-  const groupMatch = url.match(/#annotations:group:([A-Za-z0-9_]+)$/);
+  const groupMatch = url.match(/#annotations:group:([A-Za-z0-9_]+)$/)
   if (groupMatch) {
-    return { group: groupMatch[1] };
+    return { group: groupMatch[1] }
   }
 
-  return null;
+  return null
 }

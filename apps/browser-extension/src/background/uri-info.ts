@@ -1,19 +1,17 @@
-import settings from './settings';
-import { BadgeUriError } from './errors';
+import settings from './settings'
+import { BadgeUriError } from './errors'
 
-const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
+const ALLOWED_PROTOCOLS = new Set(['http:', 'https:'])
 
 // The following sites are personal in nature, high potential traffic
 // and URLs don't correspond to identifiable content
-const BLOCKED_HOSTNAMES = new Set([
-  'www.google.com',
-]);
+const BLOCKED_HOSTNAMES = new Set(['www.google.com'])
 
 /**
  * Encodes a string for use in a query parameter.
  */
 function encodeUriQuery(val: string) {
-  return encodeURIComponent(val).replace(/%20/g, '+');
+  return encodeURIComponent(val).replace(/%20/g, '+')
 }
 
 /**
@@ -30,19 +28,19 @@ function encodeUriQuery(val: string) {
  * @throws Will throw if URL is invalid or should not be sent to the 'badge' request endpoint
  */
 export function uriForBadgeRequest(uri: string) {
-  const url = new URL(uri);
+  const url = new URL(uri)
 
   if (!ALLOWED_PROTOCOLS.has(url.protocol)) {
-    throw new BadgeUriError('Blocked protocol');
+    throw new BadgeUriError('Blocked protocol')
   }
 
   if (BLOCKED_HOSTNAMES.has(url.hostname)) {
-    throw new BadgeUriError('Blocked hostname');
+    throw new BadgeUriError('Blocked hostname')
   }
 
-  url.hash = '';
+  url.hash = ''
 
-  return url.toString();
+  return url.toString()
 }
 
 /**
@@ -52,18 +50,15 @@ export function uriForBadgeRequest(uri: string) {
  * @throws Will throw a variety of errors: network, json parsing, or wrong format errors.
  */
 export async function fetchAnnotationCount(uri: string): Promise<number> {
-  const response = await fetch(
-    settings.apiUrl + '/badge?uri=' + encodeUriQuery(uri),
-    {
-      credentials: 'include',
-    },
-  );
+  const response = await fetch(settings.apiUrl + '/badge?uri=' + encodeUriQuery(uri), {
+    credentials: 'include',
+  })
 
-  const data = await response.json();
+  const data = await response.json()
 
   if (data && typeof data.total === 'number') {
-    return data.total;
+    return data.total
   }
 
-  throw new Error('Unable to parse badge response');
+  throw new Error('Unable to parse badge response')
 }

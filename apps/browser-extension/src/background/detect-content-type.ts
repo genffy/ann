@@ -1,9 +1,9 @@
-export type PDFContentType = { type: 'PDF' };
+export type PDFContentType = { type: 'PDF' }
 
-export type HTMLContentType = { type: 'HTML' };
+export type HTMLContentType = { type: 'HTML' }
 
 /** Details of the detected content type. */
-export type ContentTypeInfo = PDFContentType | HTMLContentType;
+export type ContentTypeInfo = PDFContentType | HTMLContentType
 
 /**
  * Detect the type of content in the current document.
@@ -18,9 +18,7 @@ export type ContentTypeInfo = PDFContentType | HTMLContentType;
  * @param document_ - Document to query
  */
 /* istanbul ignore next */
-export function detectContentType(
-  document_ = document,
-): ContentTypeInfo | null {
+export function detectContentType(document_ = document): ContentTypeInfo | null {
   function detectChromePDFViewer(): PDFContentType | null {
     // When viewing a PDF in Chrome, the viewer consists of a top-level
     // document with an <embed> tag, which in turn instantiates an inner HTML
@@ -32,9 +30,9 @@ export function detectContentType(
     // than right-clicking on the viewport and selecting the 'Inspect' option
     // which will instead show the _inner_ document.
     if (document_.querySelector('embed[type="application/pdf"]')) {
-      return { type: 'PDF' };
+      return { type: 'PDF' }
     }
-    return null;
+    return null
   }
 
   function detectFirefoxPDFViewer(): PDFContentType | null {
@@ -48,18 +46,18 @@ export function detectContentType(
     // `window.PDFViewerApplication` object. This however requires running JS
     // code in the same JS context as the page's own code.
     if (document_.baseURI.indexOf('resource://pdf.js') === 0) {
-      return { type: 'PDF' };
+      return { type: 'PDF' }
     }
-    return null;
+    return null
   }
 
-  const detectFns = [detectChromePDFViewer, detectFirefoxPDFViewer];
+  const detectFns = [detectChromePDFViewer, detectFirefoxPDFViewer]
   for (let i = 0; i < detectFns.length; i++) {
-    const typeInfo = detectFns[i]();
+    const typeInfo = detectFns[i]()
     if (typeInfo) {
-      return typeInfo;
+      return typeInfo
     }
   }
 
-  return { type: 'HTML' };
+  return { type: 'HTML' }
 }

@@ -12,17 +12,9 @@ const Hero = () => {
   }, [])
   return (
     <AnimatePresence>
-      <svg
-        style={{ filter: 'contrast(125%) brightness(110%)' }}
-        className="fixed z-[1] w-full h-full opacity-[35%]"
-      >
+      <svg style={{ filter: 'contrast(125%) brightness(110%)' }} className="fixed z-[1] w-full h-full opacity-[35%]">
         <filter id="noise">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency=".7"
-            numOctaves="3"
-            stitchTiles="stitch"
-          ></feTurbulence>
+          <feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="3" stitchTiles="stitch"></feTurbulence>
           <feColorMatrix type="saturate" values="0"></feColorMatrix>
         </filter>
         <rect width="100%" height="100%" filter="url(#noise)"></rect>
@@ -38,18 +30,8 @@ const Hero = () => {
           }}
           className="relative md:ml-[-10px] md:mb-[37px] font-extrabold text-[16vw] md:text-[130px] font-inter text-[#1E2B3A] leading-[0.9] tracking-[-2px] z-[100]"
         >
-          <svg
-            className="inline-block w-[82px] row-start-2 mb-8 md:mb-6"
-            viewBox="0 0 170 200"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M30 110L70 0H40L0 110V200H30L60 110H30ZM140 110L100 0H130L170 110V200H140L110 110H140Z"
-              fill="#1E2B3A"
-            />
+          <svg className="inline-block w-[82px] row-start-2 mb-8 md:mb-6" viewBox="0 0 170 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fillRule="evenodd" clipRule="evenodd" d="M30 110L70 0H40L0 110V200H30L60 110H30ZM140 110L100 0H130L170 110V200H140L110 110H140Z" fill="#1E2B3A" />
           </svg>
           nnotation <br />
           share <span className="text-[#407BBF]">anywhere</span>
@@ -67,15 +49,11 @@ const Hero = () => {
         >
           <div className="w-1/2">
             <h2 className="flex items-center font-semibold text-[1em] text-[#1a2b3b]">Platform</h2>
-            <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal">
-              Full access to our platform, including all questions and solutions.
-            </p>
+            <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal">Full access to our platform, including all questions and solutions.</p>
           </div>
           <div className="w-1/2">
             <h2 className="flex items-center font-semibold text-[1em] text-[#1a2b3b]">Community</h2>
-            <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal">
-              Join a community of like-minded individuals, and learn from each other.
-            </p>
+            <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal">Join a community of like-minded individuals, and learn from each other.</p>
           </div>
         </motion.div>
 
@@ -94,8 +72,7 @@ const Hero = () => {
               target="_blank"
               className="group rounded-full pl-[8px] min-w-[180px] pr-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
               style={{
-                boxShadow:
-                  '0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)',
+                boxShadow: '0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)',
               }}
             >
               <span className="w-5 h-5 rounded-full bg-[#407BBF] flex items-center justify-center">
@@ -107,13 +84,7 @@ const Hero = () => {
                     strokeWidth="2"
                     d="M4.75 7.75C4.75 6.64543 5.64543 5.75 6.75 5.75H17.25C18.3546 5.75 19.25 6.64543 19.25 7.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V7.75Z"
                   ></path>
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5.5 6.5L12 12.25L18.5 6.5"
-                  ></path>
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.5 6.5L12 12.25L18.5 6.5"></path>
                 </svg>
               </span>
               Star on Github
@@ -137,26 +108,9 @@ const Hero = () => {
               }}
             >
               <span className="mr-2"> Try it out </span>
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M13.75 6.75L19.25 12L13.75 17.25"
-                  stroke="#1E2B3A"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M19 12H4.75"
-                  stroke="#1E2B3A"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.75 6.75L19.25 12L13.75 17.25" stroke="#1E2B3A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M19 12H4.75" stroke="#1E2B3A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Link>
           </motion.div>

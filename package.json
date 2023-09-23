@@ -14,8 +14,9 @@
     "client:build": "pnpm run -C apps/client build",
     "server:build": "pnpm run -C apps/server build"
   },
-  "dependencies": {
+  "devDependencies": {
     "prettier": "^3.0.3",
-    "typescript": "5.1.3"
+    "typescript": "5.1.3",
+    "@types/node": "^20.6.3"
   }
 }

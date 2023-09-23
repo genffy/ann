@@ -1,22 +1,19 @@
 {
-	"compilerOptions": {
-		"target": "ES2020",
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"noEmit": true,
-		"allowJs": true,
-		"checkJs": true,
-		"jsx": "react-jsx",
-		"jsxImportSource": "preact",
-		"allowImportingTsExtensions": true
-	},
-	"include": [
-		"node_modules/vite/client.d.ts",
-		"src",
-		"lib"
-	],
-	"exclude": [
-		"node_modules",
-		"scripts"
-	]
+  "extends": "../../root.tsconfig.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "lib": ["dom", "es2017"],
+    "moduleResolution": "node",
+    "module": "esnext",
+    "target": "es2017",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "jsx": "react",
+    "jsxFactory": "h"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

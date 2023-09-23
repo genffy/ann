@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "@annhub/client",
   "version": "0.1.0",
   "private": true,
   "description": "Annotation, comment, capture, share anywhere",
@@ -20,7 +20,8 @@
     "next-intl": "3.0.0-beta.5",
     "next-themes": "^0.2.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "annotator-react": "workspace: *"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",

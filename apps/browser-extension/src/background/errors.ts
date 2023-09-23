@@ -18,7 +18,7 @@ export class BadgeUriError extends Error {}
  * Returns true if `err` is a recognized 'expected' error.
  */
 function isKnownError(err: unknown) {
-  return err instanceof ExtensionError;
+  return err instanceof ExtensionError
 }
 
 const IGNORED_ERRORS = [
@@ -32,7 +32,7 @@ const IGNORED_ERRORS = [
   // embedded Annhub instance. The user can still use the extension on other
   // pages hosted in the LMS itself.
   /Annhub extension can't be used on Annhub LMS assignments/,
-];
+]
 
 /**
  * Returns true if a given `err` is anticipated during sidebar injection, such
@@ -42,12 +42,12 @@ const IGNORED_ERRORS = [
  */
 export function shouldIgnoreInjectionError(err: { message: string }) {
   if (IGNORED_ERRORS.some(pattern => err.message.match(pattern))) {
-    return true;
+    return true
   }
   if (isKnownError(err)) {
-    return true;
+    return true
   }
-  return false;
+  return false
 }
 
 /**
@@ -62,5 +62,5 @@ export function shouldIgnoreInjectionError(err: { message: string }) {
  * @param context - Additional context for the error.
  */
 export function report(error: Error, when: string, context?: object) {
-  console.error(when, error, context);
+  console.error(when, error, context)
 }

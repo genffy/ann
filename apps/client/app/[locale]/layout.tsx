@@ -3,11 +3,12 @@ import ThemeProvider from './theme-provider'
 import { i18n } from '@/i18n/config'
 import { NextIntlClientProvider, createTranslator } from 'next-intl'
 import { notFound } from 'next/navigation'
+import Webcomponents from '@/components/webcomponent'
 
 import './globals.css'
 
 export async function generateStaticParams() {
-  return i18n.locales.map((locale) => ({ locale }))
+  return i18n.locales.map(locale => ({ locale }))
 }
 
 const inter = Inter({
@@ -55,6 +56,7 @@ export default async function RootLayout({ params: { locale }, children }: RootL
       <body className={inter.className}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>{children}</ThemeProvider>
+          <Webcomponents />
         </NextIntlClientProvider>
       </body>
     </html>

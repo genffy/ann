@@ -5,20 +5,20 @@
  * settings are used when generating the `manifest.json` file.
  */
 export type Settings = {
-  apiUrl: string;
-  buildType: string;
-  serviceUrl: string;
-  manifestV3?: boolean;
-};
+  apiUrl: string
+  buildType: string
+  serviceUrl: string
+  manifestV3?: boolean
+}
 
 // nb. This will error if the build has not been run yet.
 // import rawSettings from env files
 const rawSettings = {
   // badge theme DEV | QA
-  "buildType": import.meta.env.VITE_BUILD_TYPE,
-  "manifestV3": import.meta.env.VITE_MANIFEST_V3,
-  "apiUrl": import.meta.env.VITE_API_URL,
-  "serviceUrl": import.meta.env.VITE_SERVICE_URL
+  buildType: import.meta.env.VITE_BUILD_TYPE,
+  manifestV3: import.meta.env.VITE_MANIFEST_V3,
+  apiUrl: import.meta.env.VITE_API_URL,
+  serviceUrl: import.meta.env.VITE_SERVICE_URL,
 }
 
 /**
@@ -29,6 +29,6 @@ const settings: Settings = {
 
   // Ensure API url does not end with '/'
   apiUrl: rawSettings.apiUrl.replace(/\/$/, ''),
-};
+}
 
-export default settings;
+export default settings

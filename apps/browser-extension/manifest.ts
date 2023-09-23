@@ -1,14 +1,13 @@
 import { defineManifest, type ManifestV3Export } from '@crxjs/vite-plugin'
 import { version } from './package.json'
-import { loadEnv } from 'vite';
-
+import { loadEnv } from 'vite'
 
 export default defineManifest(({ mode, command }) => {
-  const env = loadEnv(mode, process.cwd());
+  const env = loadEnv(mode, process.cwd())
   const browserIsChrome = env.VITE_BROWSER_IS_CHROME
   const versionName = browserIsChrome ? 'Chrome' : 'Firefox'
   const key = env.VITE_KEY
-  const bouncerUrl = env.VITE_BOUNCER_URL;
+  const bouncerUrl = env.VITE_BOUNCER_URL
 
   const baseConfig: ManifestV3Export = {
     name: 'ann-browser-extension',
@@ -20,7 +19,7 @@ export default defineManifest(({ mode, command }) => {
     incognito: 'split',
     offline_enabled: false,
     externally_connectable: {
-      "matches": [`${bouncerUrl}*`]
+      matches: [`${bouncerUrl}*`],
     },
     // key,
     homepage_url: 'https://annhub.xyz',
@@ -42,7 +41,7 @@ export default defineManifest(({ mode, command }) => {
     },
     options_page: 'options.html',
     options_ui: {
-      page: "options.html"
+      page: 'options.html',
     },
     content_scripts: [
       {
@@ -56,30 +55,23 @@ export default defineManifest(({ mode, command }) => {
         matches: [],
       },
       {
-        "resources": [
-          "client/*",
-          "help/*",
+        resources: [
+          'client/*',
+          'help/*',
           // TODO use CDN to inject the pdfjs viewer
           // "pdfjs/*",
           // "pdfjs/web/viewer.html"
         ],
-        "matches": ["<all_urls>"]
-      }
+        matches: ['<all_urls>'],
+      },
     ],
-    permissions: [
-      "contextMenus",
-      "storage",
-      "tabs",
-      "scripting",
-    ],
-    optional_permissions: [
-      "webNavigation"
-    ],
+    permissions: ['contextMenus', 'storage', 'tabs', 'scripting'],
+    optional_permissions: ['webNavigation'],
     host_permissions: ['<all_urls>'],
     background: {
       service_worker: 'src/background/index.ts',
       type: 'module',
     },
-  };
+  }
   return baseConfig
 })
