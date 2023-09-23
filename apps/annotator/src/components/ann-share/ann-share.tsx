@@ -1,4 +1,4 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from '@stencil/core'
 
 @Component({
   tag: 'ann-share',
@@ -11,6 +11,6 @@ export class AnnShare {
       <Host>
         <slot></slot>
       </Host>
-    );
+    )
   }
 }
