@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "link": "pnpm link ../annotator"
   },
   "dependencies": {
     "@emotion/css": "^11.11.0",

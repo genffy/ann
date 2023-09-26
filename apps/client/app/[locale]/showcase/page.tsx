@@ -1,10 +1,14 @@
 'use client'
 import { MyComponent } from 'annotator-react'
+import { htmlTemplate } from './html_template'
 
 export default function Showcase() {
   return (
-    <div className="min-h-[100vh] sm:min-h-screen w-screen flex flex-col relative bg-[#F2F3F5] font-inter overflow-hidden">
+    <>
+      <div className="min-h-[100vh] w-screen flex justify-center">
+        <div className='max-w-[80%]' dangerouslySetInnerHTML={{ __html: htmlTemplate }}></div>
+      </div>
       <MyComponent first="Stencil" last="'Don't call me a framework' JS" />
-    </div>
+    </>
   )
 }
