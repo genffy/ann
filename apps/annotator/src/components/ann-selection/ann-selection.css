@@ -1,3 +1,10 @@
 :host {
   display: block;
 }
+
+.ann-selection__toolbar {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: rebeccapurple;
+}
