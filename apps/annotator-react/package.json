@@ -7,9 +7,9 @@
   "types": "dist/types/index.d.ts",
   "scripts": {
     "test": "node ./__tests__/react-library.test.js",
-    "build": "npm run tsc",
+    "build": "yarn run tsc",
     "tsc": "tsc -p . --outDir ./dist",
-    "link": "pnpm link ../annotator"
+    "link": "yarn link ../annotator"
   },
   "files": [
     "dist"

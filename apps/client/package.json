@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "link": "pnpm link ../annotator"
+    "link": "yarn link ../annotator"
   },
   "dependencies": {
     "@emotion/css": "^11.11.0",
@@ -16,13 +16,13 @@
     "@emotion/server": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@headlessui/react": "^1.7.15",
+    "annotator-react": "workspace: *",
     "framer-motion": "^10.12.17",
     "next": "13.4.7",
     "next-intl": "3.0.0-beta.5",
     "next-themes": "^0.2.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "annotator-react": "workspace: *"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
