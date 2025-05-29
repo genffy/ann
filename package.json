@@ -7,9 +7,7 @@
     "node": "18.17.0",
     "yarn": "4.2.2"
   },
-  "installConfig": {
-    "pnp": true
-  },
+  "installConfig": {},
   "private": true,
   "workspaces": [
     "apps/*"
