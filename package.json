@@ -16,10 +16,10 @@
     "initenv": "volta install node@18.17.0 && volta install yarn@4.2.2 && corepack enable",
     "clean": "find . -name 'node_modules' -exec rm -rf '{}' \\;",
     "format": "prettier --write '**/*.{tsx,ts,json,css,scss,md}'",
-    "ext:dev": "yarn workspace @annhub/browser-extension dev:crx",
+    "ext:dev": "yarn workspace @annhub/extension dev",
     "client:dev": "yarn workspace @annhub/client dev",
     "server:dev": "yarn workspace @annhub/server dev",
-    "ext:build": "yarn workspace @annhub/browser-extension build:crx",
+    "ext:build": "yarn workspace @annhub/extension build",
     "client:build": "yarn workspace @annhub/client build",
     "server:build": "yarn workspace @annhub/server build"
   },
