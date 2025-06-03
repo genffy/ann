@@ -1,220 +1,220 @@
-# 选词翻译扩展 - 安装指南
+# Browser Extension Installation Guide
 
-## 快速开始
+## Quick Start
 
-### 1. 环境要求
+### 1. Environment Requirements
 
 - Node.js 16+
-- npm 或 yarn 或 pnpm
-- Chrome/Edge/Firefox 浏览器
+- npm or yarn or pnpm
+- Chrome/Edge/Firefox browser
 
-### 2. 安装步骤
+### 2. Installation Steps
 
-#### 方法一：开发模式安装
+#### Method 1: Development Mode Installation
 
 ```bash
-# 1. 进入扩展目录
+# 1. Enter extension directory
 cd apps/extension
 
-# 2. 安装依赖
+# 2. Install dependencies
 npm install
 
-# 3. 构建扩展
+# 3. Build extension
 npm run build
 
-# 4. 在浏览器中加载扩展
+# 4. Load extension in browser
 # Chrome/Edge:
-# - 打开 chrome://extensions/
-# - 开启"开发者模式"
-# - 点击"加载已解压的扩展程序"
-# - 选择 .output/chrome-mv3 目录
+# - Open chrome://extensions/
+# - Enable "Developer mode"
+# - Click "Load unpacked"
+# - Select .output/chrome-mv3 directory
 
 # Firefox:
-# - 打开 about:debugging
-# - 点击"此 Firefox"
-# - 点击"临时载入附加组件"
-# - 选择 .output/firefox-mv2/manifest.json
+# - Open about:debugging
+# - Click "This Firefox"
+# - Click "Load Temporary Add-on"
+# - Select .output/firefox-mv2/manifest.json
 ```
 
-#### 方法二：开发模式（热重载）
+#### Method 2: Development Mode (Hot Reload)
 
 ```bash
-# 启动开发服务器
+# Start development server
 npm run dev
 
-# 这会自动：
-# 1. 构建扩展
-# 2. 启动文件监听
-# 3. 自动打开浏览器并安装扩展
-# 4. 代码更改时自动重载
+# This will automatically:
+# 1. Build extension
+# 2. Start file watching
+# 3. Automatically open browser and install extension
+# 4. Auto-reload on code changes
 ```
 
-### 3. 验证安装
+### 3. Verify Installation
 
-1. 安装成功后，浏览器工具栏会出现扩展图标 🌐
-2. 打开任意网页（比如提供的 test.html）
-3. 选中一段文本，应该会看到翻译弹窗
+1. After successful installation, the extension icon 🌐 will appear in the browser toolbar
+2. Open any webpage (such as the provided test.html)
+3. Select a piece of text, you should see the translation popup
 
-## 功能使用
+## Feature Usage
 
-### 基本翻译
+### Basic Translation
 
-1. **选择文本**: 在任何网页上选中需要翻译的文本
-2. **查看结果**: 翻译弹窗会自动出现在选中文本上方
-3. **关闭弹窗**: 点击弹窗外的区域或关闭按钮
+1. **Select Text**: Select the text you want to translate on any webpage
+2. **View Results**: The translation popup will automatically appear above the selected text
+3. **Close Popup**: Click outside the popup area or the close button
 
-### 配置设置
+### Configuration Settings
 
-1. **打开设置**: 点击浏览器工具栏中的扩展图标
-2. **选择服务**: 从下拉菜单选择翻译服务（Google/百度/有道）
-3. **设置语言**: 选择目标翻译语言
-4. **API密钥**: 如使用百度或有道翻译，需要配置相应的API密钥
-5. **保存设置**: 点击"保存设置"按钮
+1. **Open Settings**: Click the extension icon in the browser toolbar
+2. **Select Service**: Choose translation service from dropdown (Google/Baidu/Youdao)
+3. **Set Language**: Select target translation language
+4. **API Keys**: If using Baidu or Youdao translation, configure corresponding API keys
+5. **Save Settings**: Click "Save Settings" button
 
-### 支持的翻译服务
+### Supported Translation Services
 
-#### Google 翻译（推荐）
+#### Google Translate (Recommended)
 
-- ✅ **免费模式**: 无需配置，直接使用
-- 🔑 **官方 API**: 可选配置 [Google Cloud Translation API](https://cloud.google.com/translate/docs/setup)
-- ✅ 支持100+种语言
-- ✅ 翻译质量高
-- ⚠️ 免费接口可能受网络限制影响
+- ✅ **Free Mode**: No configuration needed, use directly
+- 🔑 **Official API**: Optional configuration [Google Cloud Translation API](https://cloud.google.com/translate/docs/setup)
+- ✅ Supports 100+ languages
+- ✅ High translation quality
+- ⚠️ Free interface may be affected by network restrictions
 
-#### 百度翻译
+#### Baidu Translate
 
-- 🔑 需要API密钥
-- ✅ 中文翻译效果好
-- 💰 有免费额度
-- 📝 [获取API密钥](https://fanyi-api.baidu.com/)
+- 🔑 Requires API key
+- ✅ Good Chinese translation results
+- 💰 Has free quota
+- 📝 [Get API Key](https://fanyi-api.baidu.com/)
 
-#### 有道翻译
+#### Youdao Translate
 
-- 🔑 需要API密钥
-- ✅ 专业术语翻译准确
-- 💰 有免费额度
-- 📝 [获取API密钥](https://ai.youdao.com/)
+- 🔑 Requires API key
+- ✅ Accurate technical term translation
+- 💰 Has free quota
+- 📝 [Get API Key](https://ai.youdao.com/)
 
-## 测试页面
+## Test Page
 
-使用提供的 `test.html` 来测试扩展功能：
+Use the provided `test.html` to test extension functionality:
 
 ```bash
-# 用浏览器打开测试页面
+# Open test page with browser
 open apps/extension/test.html
 ```
 
-测试页面包含：
+The test page includes:
 
-- 英文测试文本
-- 中文测试文本
-- 长文本测试
-- 专业术语测试
-- 短语测试
+- English test text
+- Chinese test text
+- Long text test
+- Technical terms test
+- Phrase test
 
-## 故障排除
+## Troubleshooting
 
-### 常见问题
+### Common Issues
 
-#### 1. 扩展无法加载
+#### 1. Extension Cannot Load
 
-- 检查是否开启了开发者模式
-- 确认选择了正确的目录（.output/chrome-mv3）
-- 查看浏览器控制台错误信息
+- Check if developer mode is enabled
+- Confirm correct directory is selected (.output/chrome-mv3)
+- Check browser console error messages
 
-#### 2. 翻译不工作
+#### 2. Translation Not Working
 
-- 检查网络连接
-- 尝试选择不同的文本
-- 打开浏览器开发者工具查看错误
-- 尝试切换翻译服务
+- Check network connection
+- Try selecting different text
+- Open browser developer tools to check errors
+- Try switching translation services
 
-#### 3. 设置无法保存
+#### 3. Settings Cannot Save
 
-- 检查浏览器是否允许扩展存储数据
-- 尝试重新安装扩展
+- Check if browser allows extension to store data
+- Try reinstalling the extension
 
-#### 4. Google翻译失败
+#### 4. Google Translate Fails
 
-- 这是正常现象，会自动降级到本地翻译词典
-- 可以尝试配置百度或有道翻译API
+- This is normal behavior, will automatically fallback to local translation dictionary
+- You can try configuring Baidu or Youdao translation API
 
-### 调试方法
+### Debugging Methods
 
-#### 查看扩展日志
+#### View Extension Logs
 
 ```bash
 # Chrome
-# 1. 打开 chrome://extensions/
-# 2. 找到选词翻译扩展
-# 3. 点击"详细信息"
-# 4. 点击"检查视图：背景页"
+# 1. Open chrome://extensions/
+# 2. Find Text Selection Translation extension
+# 3. Click "Details"
+# 4. Click "Inspect views: background page"
 
 # Firefox
-# 1. 打开 about:debugging
-# 2. 找到扩展
-# 3. 点击"检查"
+# 1. Open about:debugging
+# 2. Find extension
+# 3. Click "Inspect"
 ```
 
-#### 查看页面控制台
+#### View Page Console
 
 ```bash
-# 在任意网页按 F12 打开开发者工具
-# 查看 Console 标签页的日志信息
+# Press F12 on any webpage to open developer tools
+# Check Console tab for log information
 ```
 
-## 开发指南
+## Development Guide
 
-### 项目结构
+### Project Structure
 
 ```
 apps/extension/
 ├── entrypoints/
-│   ├── background.ts      # 后台脚本
-│   ├── content.ts         # 内容脚本
-│   └── popup/             # 弹窗页面
-├── wxt.config.ts          # 配置文件
-├── package.json           # 依赖管理
-├── test.html              # 测试页面
-└── README.md              # 说明文档
+│   ├── background.ts      # Background script
+│   ├── content.ts         # Content script
+│   └── popup/             # Popup page
+├── wxt.config.ts          # Configuration file
+├── package.json           # Dependency management
+├── test.html              # Test page
+└── README.md              # Documentation
 ```
 
-### 修改代码
+### Modifying Code
 
-1. 编辑相应的文件
-2. 如果运行了 `npm run dev`，更改会自动重载
-3. 如果是手动构建，需要重新运行 `npm run build`
+1. Edit corresponding files
+2. If running `npm run dev`, changes will auto-reload
+3. If manually building, need to re-run `npm run build`
 
-### 添加新的翻译服务
+### Adding New Translation Services
 
-1. 在 `background.ts` 中添加新的翻译提供商
-2. 在 `popup/index.html` 中添加选项
-3. 更新配置处理逻辑
+1. Add new translation provider in `background.ts`
+2. Add options in `popup/index.html`
+3. Update configuration handling logic
 
-## 发布打包
+## Release Packaging
 
-### 构建生产版本
+### Build Production Version
 
 ```bash
 npm run build
 ```
 
-### 打包发布
+### Package for Release
 
 ```bash
 npm run zip
 ```
 
-这会在 `.output` 目录生成可用于商店发布的zip文件。
+This will generate zip files in the `.output` directory for store publication.
 
-## 许可证
+## License
 
-MIT License - 请查看 LICENSE 文件了解详情。
+MIT License - Please see LICENSE file for details.
 
-## 支持
+## Support
 
-如果遇到问题或有建议，请：
+If you encounter issues or have suggestions, please:
 
-1. 查看本文档的故障排除部分
-2. 检查 GitHub Issues
-3. 提交新的 Issue 或 Pull Request
+1. Check the troubleshooting section of this documentation
+2. Check GitHub Issues
+3. Submit new Issues or Pull Requests

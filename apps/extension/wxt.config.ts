@@ -4,8 +4,8 @@ import { defineConfig } from 'wxt'
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: '选词翻译',
-    description: '选中文本即可翻译，支持多种翻译服务',
+    name: 'Text Selection Translation',
+    description: 'Translate selected text instantly with multiple translation services',
     version: '1.0.0',
     permissions: ['storage', 'activeTab'],
     host_permissions: [
@@ -18,7 +18,7 @@ export default defineConfig({
     ],
     action: {
       default_popup: 'popup/index.html',
-      default_title: '选词翻译设置',
+      default_title: 'Text Selection Translation Settings',
     },
     content_security_policy: {
       extension_pages: "script-src 'self'; object-src 'self';",

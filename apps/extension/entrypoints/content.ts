@@ -6,7 +6,7 @@ export default defineContentScript({
     let translationPopup: HTMLElement | null = null
     let currentSelection: Selection | null = null
 
-    // 监听文本选择事件
+    // Listen for text selection events
     document.addEventListener('mouseup', handleMouseUp)
     document.addEventListener('keyup', handleKeyUp)
     document.addEventListener('mousedown', hideTranslationPopup)
@@ -48,7 +48,7 @@ export default defineContentScript({
       const popup = createTranslationPopup()
       translationPopup = popup
 
-      // 获取选中文本的位置
+      // Get the position of selected text
       const range = currentSelection?.getRangeAt(0)
       if (!range) return
 
@@ -56,11 +56,11 @@ export default defineContentScript({
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft
       const scrollY = window.pageYOffset || document.documentElement.scrollTop
 
-      // 定位到选中文本的上方
+      // Position above the selected text
       popup.style.left = `${rect.left + scrollX}px`
       popup.style.top = `${rect.top + scrollY - popup.offsetHeight - 10}px`
 
-      // 确保弹窗不会超出视窗
+      // Ensure popup doesn't exceed viewport
       const popupRect = popup.getBoundingClientRect()
       if (popupRect.right > window.innerWidth) {
         popup.style.left = `${window.innerWidth - popupRect.width - 20 + scrollX}px`
@@ -71,7 +71,7 @@ export default defineContentScript({
 
       document.body.appendChild(popup)
 
-      // 开始翻译
+      // Start translation
       translateText(text, popup)
     }
 
@@ -80,15 +80,15 @@ export default defineContentScript({
       popup.className = 'wxt-translation-popup'
       popup.innerHTML = `
         <div class="wxt-translation-header">
-          <span class="wxt-translation-title">翻译中...</span>
+          <span class="wxt-translation-title">Translating...</span>
           <button class="wxt-translation-close">×</button>
         </div>
         <div class="wxt-translation-content">
-          <div class="wxt-translation-loading">正在翻译...</div>
+          <div class="wxt-translation-loading">Translating...</div>
         </div>
       `
 
-      // 添加样式
+      // Add styles
       popup.style.cssText = `
         position: absolute;
         z-index: 10000;
@@ -105,7 +105,7 @@ export default defineContentScript({
         margin: 0;
       `
 
-      // 添加关闭按钮事件
+      // Add close button event
       const closeBtn = popup.querySelector('.wxt-translation-close') as HTMLElement
       closeBtn.addEventListener('click', hideTranslationPopup)
       closeBtn.style.cssText = `
@@ -122,7 +122,7 @@ export default defineContentScript({
         color: #666;
       `
 
-      // 样式化其他元素
+      // Style other elements
       const header = popup.querySelector('.wxt-translation-header') as HTMLElement
       header.style.cssText = `
         padding: 8px 12px;
@@ -150,7 +150,7 @@ export default defineContentScript({
 
     async function translateText(text: string, popup: HTMLElement) {
       try {
-        // 使用 background script 的翻译服务
+        // Use background script translation service
         const response = await browser.runtime.sendMessage({
           type: 'TRANSLATE_TEXT',
           text: text,
@@ -160,13 +160,13 @@ export default defineContentScript({
         const title = popup.querySelector('.wxt-translation-title') as HTMLElement
         console.log(response)
         if (response.success) {
-          title.textContent = '翻译结果'
+          title.textContent = 'Translation Result'
           content.innerHTML = `
             <div class="wxt-original-text">${text}</div>
             <div class="wxt-translation-result">${response.result}</div>
           `
 
-          // 样式化结果
+          // Style results
           const originalText = content.querySelector('.wxt-original-text') as HTMLElement
           originalText.style.cssText = `
             color: #666;
@@ -189,9 +189,9 @@ export default defineContentScript({
         const content = popup.querySelector('.wxt-translation-content') as HTMLElement
         const title = popup.querySelector('.wxt-translation-title') as HTMLElement
 
-        title.textContent = '翻译失败'
+        title.textContent = 'Translation Failed'
         content.innerHTML = `
-          <div class="wxt-error-message">翻译服务暂时不可用，请稍后重试</div>
+          <div class="wxt-error-message">Translation service is temporarily unavailable, please try again later</div>
         `
 
         const errorMsg = content.querySelector('.wxt-error-message') as HTMLElement
@@ -209,7 +209,7 @@ export default defineContentScript({
       }
     }
 
-    // 点击页面其他地方时隐藏弹窗
+    // Hide popup when clicking elsewhere on the page
     document.addEventListener('click', event => {
       if (translationPopup && !translationPopup.contains(event.target as Node)) {
         hideTranslationPopup()

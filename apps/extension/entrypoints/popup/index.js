@@ -7,32 +7,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   const googleKeysDiv = document.getElementById('googleKeys');
   const baiduKeysDiv = document.getElementById('baiduKeys');
   const youdaoKeysDiv = document.getElementById('youdaoKeys');
-  
-  // API 密钥输入框
+
+  // API key input fields
   const googleApiKeyInput = document.getElementById('googleApiKey');
   const baiduAppIdInput = document.getElementById('baiduAppId');
   const baiduKeyInput = document.getElementById('baiduKey');
   const youdaoAppKeyInput = document.getElementById('youdaoAppKey');
   const youdaoAppSecretInput = document.getElementById('youdaoAppSecret');
-  
-  // 加载当前配置
+
+  // Load current configuration
   await loadConfig();
-  
-  // 监听翻译服务提供商变化
+
+  // Listen for translation service provider changes
   providerSelect.addEventListener('change', () => {
     showApiKeysForProvider(providerSelect.value);
   });
-  
-  // 保存配置
+
+  // Save configuration
   saveBtn.addEventListener('click', saveConfig);
-  
-  // 显示对应服务商的 API 密钥输入框
+
+  // Show API key input fields for corresponding service provider
   function showApiKeysForProvider(provider) {
-    // 隐藏所有 API 密钥输入框
+    // Hide all API key input fields
     googleKeysDiv.style.display = 'none';
     baiduKeysDiv.style.display = 'none';
     youdaoKeysDiv.style.display = 'none';
-    
+
     if (provider === 'google') {
       apiKeysDiv.style.display = 'block';
       googleKeysDiv.style.display = 'block';
@@ -46,45 +46,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       apiKeysDiv.style.display = 'none';
     }
   }
-  
-  // 加载配置
+
+  // Load configuration
   async function loadConfig() {
     try {
       const response = await browser.runtime.sendMessage({
         type: 'GET_TRANSLATION_CONFIG'
       });
-      
+
       if (response) {
         providerSelect.value = response.provider || 'google';
         targetLangSelect.value = response.targetLanguage || 'zh';
-        
-        // 加载 API 密钥
+
+        // Load API keys
         if (response.apiKeys) {
           if (response.apiKeys.google) {
             googleApiKeyInput.value = response.apiKeys.google.key || '';
           }
-          
+
           if (response.apiKeys.baidu) {
             baiduAppIdInput.value = response.apiKeys.baidu.appId || '';
             baiduKeyInput.value = response.apiKeys.baidu.key || '';
           }
-          
+
           if (response.apiKeys.youdao) {
             youdaoAppKeyInput.value = response.apiKeys.youdao.appKey || '';
             youdaoAppSecretInput.value = response.apiKeys.youdao.appSecret || '';
           }
         }
-        
-        // 显示对应的 API 密钥输入框
+
+        // Show corresponding API key input fields
         showApiKeysForProvider(providerSelect.value);
       }
     } catch (error) {
       console.error('Failed to load config:', error);
-      showStatus('加载配置失败', 'error');
+      showStatus('Failed to load configuration', 'error');
     }
   }
-  
-  // 保存配置
+
+  // Save configuration
   async function saveConfig() {
     try {
       const config = {
@@ -105,32 +105,32 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
       };
-      
+
       const response = await browser.runtime.sendMessage({
         type: 'SET_TRANSLATION_CONFIG',
         config: config
       });
-      
+
       if (response && response.success) {
-        showStatus('设置保存成功！', 'success');
+        showStatus('Settings saved successfully!', 'success');
       } else {
-        throw new Error('保存失败');
+        throw new Error('Save failed');
       }
     } catch (error) {
       console.error('Failed to save config:', error);
-      showStatus('保存设置失败', 'error');
+      showStatus('Failed to save settings', 'error');
     }
   }
-  
-  // 显示状态消息
+
+  // Show status message
   function showStatus(message, type) {
     statusDiv.textContent = message;
     statusDiv.className = `status ${type}`;
     statusDiv.style.display = 'block';
-    
-    // 3秒后隐藏状态消息
+
+    // Hide status message after 3 seconds
     setTimeout(() => {
       statusDiv.style.display = 'none';
     }, 3000);
   }
-}); 
+});

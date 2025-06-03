@@ -1,7 +1,7 @@
 export default defineBackground(() => {
   console.log('Translation extension background loaded', { id: browser.runtime.id })
 
-  // 默认翻译配置
+  // Default translation configuration
   const defaultConfig = {
     provider: 'google',
     targetLanguage: 'zh',
@@ -21,7 +21,7 @@ export default defineBackground(() => {
     },
   }
 
-  // 初始化配置
+  // Initialize configuration
   browser.runtime.onInstalled.addListener(async () => {
     const config = await browser.storage.sync.get('translationConfig')
     if (!config.translationConfig) {
@@ -29,24 +29,24 @@ export default defineBackground(() => {
     }
   })
 
-  // 处理来自 content script 的消息
+  // Handle messages from content script
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'GET_TRANSLATION_CONFIG') {
       browser.storage.sync.get('translationConfig').then(config => {
         sendResponse(config.translationConfig || defaultConfig)
       })
-      return true // 表示异步响应
+      return true // Indicates async response
     }
 
     if (message.type === 'SET_TRANSLATION_CONFIG') {
       browser.storage.sync.set({ translationConfig: message.config }).then(() => {
         sendResponse({ success: true })
       })
-      return true // 表示异步响应
+      return true // Indicates async response
     }
 
     if (message.type === 'TRANSLATE_TEXT') {
-      ;(async () => {
+      ; (async () => {
         const config = await browser.storage.sync.get('translationConfig')
         const translationConfig = config.translationConfig || defaultConfig
 
@@ -55,7 +55,7 @@ export default defineBackground(() => {
           sendResponse({ success: true, result })
         } catch (error) {
           console.error('Background translation error:', error)
-          // 尝试降级翻译
+          // Try fallback translation
           try {
             const fallbackResult = await fallbackTranslation(message.text)
             sendResponse({ success: true, result: fallbackResult })
@@ -64,11 +64,11 @@ export default defineBackground(() => {
           }
         }
       })()
-      return true // 表示异步响应
+      return true // Indicates async response
     }
   })
 
-  // 翻译函数
+  // Translation function
   async function translateWithProvider(text: string, config: any): Promise<string> {
     switch (config.provider) {
       case 'google':
@@ -84,16 +84,16 @@ export default defineBackground(() => {
 
   async function translateWithGoogle(text: string, targetLang: string = 'zh'): Promise<string> {
     try {
-      // 获取配置，检查是否有 Google API key
+      // Get configuration, check if Google API key exists
       const config = await browser.storage.sync.get('translationConfig')
       const googleApiKey = config.translationConfig?.apiKeys?.google?.key
       console.log('Google API key:', googleApiKey)
-      // 如果有 API key，使用官方 Cloud Translation API
+      // If API key exists, use official Cloud Translation API
       if (googleApiKey) {
         return await translateWithGoogleCloudAPI(text, targetLang, googleApiKey)
       }
 
-      // 否则使用免费的翻译接口
+      // Otherwise use free translation interface
       return await translateWithGoogleFreeAPI(text, targetLang)
     } catch (error) {
       console.error('Google translation error:', error)
@@ -101,7 +101,7 @@ export default defineBackground(() => {
     }
   }
 
-  // Google Cloud Translation API (官方接口)
+  // Google Cloud Translation API (Official interface)
   async function translateWithGoogleCloudAPI(text: string, targetLang: string, apiKey: string): Promise<string> {
     try {
       const url = 'https://translation.googleapis.com/language/translate/v2'
@@ -125,7 +125,7 @@ export default defineBackground(() => {
 
       const data = await response.json()
 
-      // 根据官方文档处理响应格式
+      // Handle response format according to official documentation
       if (data && data.data && data.data.translations && data.data.translations.length > 0) {
         const translation = data.data.translations[0]
         if (translation.translatedText) {
@@ -140,16 +140,16 @@ export default defineBackground(() => {
     }
   }
 
-  // Google 免费翻译接口 (非官方)
+  // Google free translation interface (Unofficial)
   async function translateWithGoogleFreeAPI(text: string, targetLang: string): Promise<string> {
     const apis = [
       {
         url: `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`,
         parseResponse: (data: any) => {
-          // Google Translate 免费接口返回的是复杂的数组结构
+          // Google Translate free interface returns complex array structure
           if (data && Array.isArray(data) && data[0]) {
             if (Array.isArray(data[0])) {
-              // 标准格式: [[[翻译文本, 原文本, null, null, 语言代码]], null, 语言代码]
+              // Standard format: [[[translated text, original text, null, null, language code]], null, language code]
               const translations = data[0].map((item: any[]) => item[0]).filter(Boolean)
               if (translations.length > 0) {
                 return translations.join('')
@@ -162,7 +162,7 @@ export default defineBackground(() => {
       {
         url: `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl=${targetLang}&q=${encodeURIComponent(text)}`,
         parseResponse: (data: any) => {
-          // Chrome 扩展接口格式
+          // Chrome extension interface format
           if (data && data.sentences && Array.isArray(data.sentences)) {
             const translations = data.sentences.map((sentence: any) => sentence.trans).filter(Boolean)
             if (translations.length > 0) {
@@ -175,7 +175,7 @@ export default defineBackground(() => {
       {
         url: `https://translate.google.com/translate_a/single?client=webapp&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`,
         parseResponse: (data: any) => {
-          // Web 应用接口格式
+          // Web application interface format
           if (data && Array.isArray(data) && data[0] && Array.isArray(data[0])) {
             const result = data[0]
               .map((item: any[]) => item[0])
@@ -210,10 +210,10 @@ export default defineBackground(() => {
         if (contentType && contentType.includes('application/json')) {
           data = await response.json()
         } else {
-          // 有些接口可能返回 JavaScript 格式，需要特殊处理
+          // Some interfaces may return JavaScript format, requiring special handling
           const text = await response.text()
           try {
-            // 移除可能的 JSON-P 包装
+            // Remove possible JSON-P wrapper
             const jsonMatch = text.match(/(?:\w+\()?(\[.*\])(?:\))?/)
             if (jsonMatch) {
               data = JSON.parse(jsonMatch[1])
@@ -239,19 +239,20 @@ export default defineBackground(() => {
     throw new Error('All Google Translate free APIs failed')
   }
 
+  // Baidu Translation API implementation
   async function translateWithBaidu(text: string, config: any): Promise<string> {
     const { appId, key } = config.apiKeys.baidu
     if (!appId || !key) {
       throw new Error('Baidu translation requires API credentials')
     }
 
-    // 百度翻译API实现
+    // Generate signature (MD5 implementation required)
     const salt = Date.now().toString()
     const query = text
     const from = 'auto'
     const to = config.targetLanguage === 'zh' ? 'zh' : config.targetLanguage
 
-    // 生成签名 (需要实现MD5)
+    // Generate signature (MD5 implementation required)
     const sign = generateMD5(`${appId}${query}${salt}${key}`)
 
     const url = 'https://fanyi-api.baidu.com/api/trans/vip/translate'
@@ -278,19 +279,20 @@ export default defineBackground(() => {
     throw new Error('Baidu translation failed')
   }
 
+  // Youdao Translation API implementation
   async function translateWithYoudao(text: string, config: any): Promise<string> {
     const { appKey, appSecret } = config.apiKeys.youdao
     if (!appKey || !appSecret) {
       throw new Error('Youdao translation requires API credentials')
     }
 
-    // 有道翻译API实现
+    // Youdao Translation API implementation
     throw new Error('Youdao translation not implemented yet')
   }
 
-  // 降级翻译方案
+  // Fallback translation solution
   async function fallbackTranslation(text: string): Promise<string> {
-    // 简单的单词翻译映射
+    // Simple word translation mapping
     const translations: Record<string, string> = {
       // 英文到中文
       'hello': '你好',
@@ -325,19 +327,19 @@ export default defineBackground(() => {
 
     const lowerText = text.toLowerCase().trim()
 
-    // 查找完全匹配
+    // Find exact match
     if (translations[lowerText]) {
       return translations[lowerText]
     }
 
-    // 查找部分匹配
+    // Find partial match
     for (const [key, value] of Object.entries(translations)) {
       if (lowerText.includes(key) || key.includes(lowerText)) {
         return value
       }
     }
 
-    // 如果是中文，尝试翻译成英文
+    // If it's Chinese, try to translate to English
     if (/[\u4e00-\u9fa5]/.test(text)) {
       const chineseToEnglish: Record<string, string> = {
         你好: 'hello',
@@ -357,7 +359,7 @@ export default defineBackground(() => {
         return chineseToEnglish[text]
       }
 
-      // 部分匹配
+      // Partial match
       for (const [key, value] of Object.entries(chineseToEnglish)) {
         if (text.includes(key)) {
           return value
@@ -365,15 +367,15 @@ export default defineBackground(() => {
       }
     }
 
-    // 如果没有找到匹配的翻译，返回原文并标记
-    return `[需要翻译] ${text}`
+    // If no matching translation found, return original text with marker
+    return `[Translation needed] ${text}`
   }
 
-  // 简单的MD5实现 (用于百度翻译签名)
+  // Simple MD5 implementation (for Baidu translation signature)
   function generateMD5(str: string): string {
-    // 这里应该实现真正的MD5算法
-    // 为了简化，暂时返回一个固定值
-    // 在实际使用中，需要引入crypto库或MD5实现
+    // Should implement real MD5 algorithm here
+    // For simplification, temporarily return a fixed value
+    // In actual use, need to import crypto library or MD5 implementation
     return 'placeholder_md5_hash'
   }
 })
