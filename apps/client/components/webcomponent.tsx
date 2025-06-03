@@ -4,7 +4,7 @@ import React, { useEffect } from 'react'
 
 const Webcomponents = () => {
   useEffect(() => {
-    return () => { }
+    return () => {}
   }, [])
 
   return <></>

@@ -31,17 +31,20 @@
 ## 支持的翻译服务
 
 ### Google 翻译
+
 - **免费模式**: 无需 API 密钥，使用免费接口（推荐）
 - **官方 API**: 使用 [Google Cloud Translation API](https://cloud.google.com/translate/docs/setup)，需要 API 密钥
 - **支持语言**: 100+ 种语言
 - **特点**: 翻译质量高，支持自动语言检测
 
 ### 百度翻译
+
 - **特点**: 中文翻译效果好
 - **配置**: 需要百度翻译 API 密钥
 - **获取方式**: [百度翻译开放平台](https://fanyi-api.baidu.com/)
 
 ### 有道翻译
+
 - **特点**: 支持多种专业领域翻译
 - **配置**: 需要有道智云 API 密钥
 - **获取方式**: [有道智云](https://ai.youdao.com/)
@@ -99,8 +102,8 @@ npm run zip
 
 ```typescript
 interface TranslationProvider {
-  name: string;
-  translate: (text: string, config: any) => Promise<string>;
+  name: string
+  translate: (text: string, config: any) => Promise<string>
 }
 ```
 
@@ -135,6 +138,7 @@ MIT License
 ## 更新日志
 
 ### v1.0.0
+
 - 初始版本发布
 - 支持 Google 翻译
 - 基础的选词翻译功能

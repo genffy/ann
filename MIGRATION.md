@@ -32,12 +32,14 @@ corepack enable
 ## 项目结构变化
 
 ### 删除的文件
+
 - `pnpm-workspace.yaml` - 替换为 package.json 中的 workspaces 配置
 - `pnpm-lock.yaml` - 替换为 yarn.lock (Yarn 4.x 格式)
 - `.nvmrc` - 替换为 package.json 中的 volta 配置
 - `node_modules/` - 由 PnP 的 `.pnp.cjs` 文件替代
 
 ### 修改的文件
+
 - `package.json` - 添加了 volta 配置、workspaces 配置和 PnP 配置
 - `.yarnrc.yml` - 添加了 Yarn 4.x 和 PnP 相关配置
 - `.gitignore` - 更新了 PnP 相关的忽略规则
@@ -84,6 +86,7 @@ yarn format
 ## PnP 注意事项
 
 ### IDE 支持
+
 大多数现代 IDE 都支持 Yarn PnP，但可能需要额外配置：
 
 - **VS Code**: 安装 "ZipFS" 扩展以支持 zip 文件中的包
@@ -91,6 +94,7 @@ yarn format
 - **其他编辑器**: 可能需要安装相应的 PnP 插件
 
 ### 兼容性
+
 - 大部分现代 npm 包都兼容 PnP
 - 如遇到兼容性问题，可在 `.yarnrc.yml` 中配置 `packageExtensions`
 - React Native 项目暂不支持 PnP，需要使用传统的 node_modules 模式
