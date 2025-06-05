@@ -13,6 +13,12 @@
       padding: 40px 20px;
       line-height: 1.6;
       background: #f5f5f5;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark-theme {
+      background: #1a1a1a;
+      color: #e0e0e0;
     }
 
     .container {
@@ -20,6 +26,12 @@
       padding: 40px;
       border-radius: 12px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    body.dark-theme .container {
+      background: #2d2d2d;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 
     h1 {
@@ -34,6 +46,12 @@
       background: #f9f9f9;
       border-radius: 8px;
       border-left: 4px solid #007aff;
+      transition: background-color 0.3s ease;
+    }
+
+    body.dark-theme .section {
+      background: #383838;
+      border-left-color: #0066cc;
     }
 
     .section h2 {
@@ -48,10 +66,20 @@
       margin: 10px 0;
       cursor: pointer;
       user-select: text;
+      transition: background-color 0.3s ease;
     }
 
     .test-text:hover {
       background: #d4e9f7;
+    }
+
+    body.dark-theme .test-text {
+      background: #404040;
+      color: #e0e0e0;
+    }
+
+    body.dark-theme .test-text:hover {
+      background: #4a4a4a;
     }
 
     .instruction {
@@ -60,6 +88,12 @@
       border-radius: 6px;
       border: 1px solid #ffeaa7;
       margin: 20px 0;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body.dark-theme .instruction {
+      background: #4a4a2a;
+      border-color: #666633;
     }
 
     .code {
@@ -76,9 +110,16 @@
   <div class="container">
     <h1>🌐 Text Selection Translation Test Page</h1>
 
+    <div style="text-align: center; margin-bottom: 20px;">
+      <button id="themeToggle"
+        style="padding: 8px 16px; border: none; border-radius: 4px; background: #007aff; color: white; cursor: pointer;">
+        🌙 Switch to Dark Theme
+      </button>
+    </div>
+
     <div class="instruction">
       <strong>Instructions:</strong> Select any text below, and the translation popup will automatically appear above
-      the selected text.
+      the selected text. The popup will adapt to the page theme automatically.
     </div>
 
     <div class="section">
@@ -141,6 +182,28 @@
     </div>
 
     <div class="section">
+      <h2>Translation Rules Test</h2>
+      <div class="test-text">
+        12345
+      </div>
+      <div class="test-text">
+        0x742d35Cc6634C0532925a3b8D4C9db4C4C4C4C4C
+      </div>
+      <div class="test-text">
+        纯中文文本测试
+      </div>
+      <div class="test-text">
+        $123.45
+      </div>
+      <div class="test-text">
+        bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+      </div>
+      <div class="test-text">
+        9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM
+      </div>
+    </div>
+
+    <div class="section">
       <h2>Phrase Test</h2>
       <div class="test-text">
         Thank you
@@ -163,9 +226,37 @@
         <li>Click the browser extension icon to access the settings page</li>
         <li>Support switching between different translation services and target languages</li>
         <li>Translation results will be displayed above the selected text</li>
+        <li>The popup will automatically adapt to light/dark theme</li>
+        <li>Configure translation rules to skip certain types of text (numbers, crypto addresses, etc.)</li>
+        <li>Test the "Translation Rules Test" section to see filtering in action</li>
       </ul>
     </div>
   </div>
+
+  <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+
+    // Check for saved theme preference or default to light
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      body.classList.add('dark-theme');
+      themeToggle.textContent = '☀️ Switch to Light Theme';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('dark-theme');
+
+      if (body.classList.contains('dark-theme')) {
+        themeToggle.textContent = '☀️ Switch to Light Theme';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        themeToggle.textContent = '🌙 Switch to Dark Theme';
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  </script>
 </body>
 
 </html>

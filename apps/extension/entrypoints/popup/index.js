@@ -15,8 +15,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const youdaoAppKeyInput = document.getElementById('youdaoAppKey');
   const youdaoAppSecretInput = document.getElementById('youdaoAppSecret');
 
+  // Translation rules input fields
+  const enableRulesInput = document.getElementById('enableRules');
+  const skipChineseInput = document.getElementById('skipChinese');
+  const skipNumbersInput = document.getElementById('skipNumbers');
+  const skipCryptoAddressesInput = document.getElementById('skipCryptoAddresses');
+
   // Load current configuration
   await loadConfig();
+  await loadTranslationRules();
 
   // Listen for translation service provider changes
   providerSelect.addEventListener('change', () => {
@@ -84,9 +91,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Load translation rules
+  async function loadTranslationRules() {
+    try {
+      const response = await browser.runtime.sendMessage({
+        type: 'GET_TRANSLATION_RULES'
+      });
+
+      if (response) {
+        enableRulesInput.checked = response.enabled !== false;
+        skipChineseInput.checked = response.skipChinese === true;
+        skipNumbersInput.checked = response.skipNumbers !== false;
+        skipCryptoAddressesInput.checked = response.skipCryptoAddresses !== false;
+      }
+    } catch (error) {
+      console.error('Failed to load translation rules:', error);
+    }
+  }
+
   // Save configuration
   async function saveConfig() {
     try {
+      // Save translation config
       const config = {
         provider: providerSelect.value,
         targetLanguage: targetLangSelect.value,
@@ -106,12 +132,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       };
 
-      const response = await browser.runtime.sendMessage({
+      const configResponse = await browser.runtime.sendMessage({
         type: 'SET_TRANSLATION_CONFIG',
         config: config
       });
 
-      if (response && response.success) {
+      // Save translation rules
+      const rules = {
+        enabled: enableRulesInput.checked,
+        skipChinese: skipChineseInput.checked,
+        skipNumbers: skipNumbersInput.checked,
+        skipCryptoAddresses: skipCryptoAddressesInput.checked,
+        customRules: []
+      };
+
+      const rulesResponse = await browser.runtime.sendMessage({
+        type: 'SET_TRANSLATION_RULES',
+        rules: rules
+      });
+
+      if (configResponse?.success && rulesResponse?.success) {
         showStatus('Settings saved successfully!', 'success');
       } else {
         throw new Error('Save failed');

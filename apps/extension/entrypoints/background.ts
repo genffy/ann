@@ -19,13 +19,32 @@ export default defineBackground(() => {
         appSecret: '',
       },
     },
+    translationRules: {
+      enabled: true,
+      skipChinese: false,
+      skipNumbers: true,
+      skipCryptoAddresses: true,
+      customRules: [],
+    },
+  }
+
+  // Default translation rules
+  const defaultTranslationRules = {
+    enabled: true,
+    skipChinese: false,
+    skipNumbers: true,
+    skipCryptoAddresses: true,
+    customRules: [],
   }
 
   // Initialize configuration
   browser.runtime.onInstalled.addListener(async () => {
-    const config = await browser.storage.sync.get('translationConfig')
+    const config = await browser.storage.sync.get(['translationConfig', 'translationRules'])
     if (!config.translationConfig) {
       await browser.storage.sync.set({ translationConfig: defaultConfig })
+    }
+    if (!config.translationRules) {
+      await browser.storage.sync.set({ translationRules: defaultTranslationRules })
     }
   })
 
@@ -40,6 +59,33 @@ export default defineBackground(() => {
 
     if (message.type === 'SET_TRANSLATION_CONFIG') {
       browser.storage.sync.set({ translationConfig: message.config }).then(() => {
+        sendResponse({ success: true })
+      })
+      return true // Indicates async response
+    }
+
+    if (message.type === 'CHECK_TRANSLATION_RULES') {
+      ; (async () => {
+        try {
+          const shouldTranslate = await checkTranslationRules(message.text)
+          sendResponse({ shouldTranslate })
+        } catch (error) {
+          console.error('Error checking translation rules:', error)
+          sendResponse({ shouldTranslate: true }) // Default to translate on error
+        }
+      })()
+      return true // Indicates async response
+    }
+
+    if (message.type === 'GET_TRANSLATION_RULES') {
+      browser.storage.sync.get('translationRules').then(config => {
+        sendResponse(config.translationRules || defaultTranslationRules)
+      })
+      return true // Indicates async response
+    }
+
+    if (message.type === 'SET_TRANSLATION_RULES') {
+      browser.storage.sync.set({ translationRules: message.rules }).then(() => {
         sendResponse({ success: true })
       })
       return true // Indicates async response
@@ -67,6 +113,90 @@ export default defineBackground(() => {
       return true // Indicates async response
     }
   })
+
+  // Check if text should be translated based on rules
+  async function checkTranslationRules(text: string): Promise<boolean> {
+    try {
+      const config = await browser.storage.sync.get('translationRules')
+      const rules = config.translationRules || defaultTranslationRules
+
+      // If rules are disabled, translate everything
+      if (!rules.enabled) {
+        return true
+      }
+
+      // Check if text is only Chinese characters
+      if (rules.skipChinese && /^[\u4e00-\u9fa5\s\p{P}]*$/u.test(text)) {
+        return false
+      }
+
+      // Check if text is only numbers
+      if (rules.skipNumbers && /^[\d\s\.\,\-\+]*$/.test(text)) {
+        return false
+      }
+
+      // Check if text is a cryptocurrency contract address
+      if (rules.skipCryptoAddresses && isCryptoAddress(text)) {
+        return false
+      }
+
+      // Check custom rules
+      if (rules.customRules && rules.customRules.length > 0) {
+        for (const rule of rules.customRules) {
+          if (rule.enabled && rule.pattern) {
+            try {
+              const regex = new RegExp(rule.pattern, rule.flags || 'i')
+              if (regex.test(text)) {
+                return false
+              }
+            } catch (error) {
+              console.warn('Invalid custom rule pattern:', rule.pattern, error)
+            }
+          }
+        }
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error in checkTranslationRules:', error)
+      return true // Default to translate on error
+    }
+  }
+
+  // Check if text is a cryptocurrency contract address
+  function isCryptoAddress(text: string): boolean {
+    const trimmedText = text.trim()
+
+    // Ethereum address (0x followed by 40 hex characters)
+    if (/^0x[a-fA-F0-9]{40}$/.test(trimmedText)) {
+      return true
+    }
+
+    // Bitcoin address patterns
+    if (/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(trimmedText) || // Legacy
+      /^bc1[a-z0-9]{39,59}$/.test(trimmedText)) { // Bech32
+      return true
+    }
+
+    // Solana address (base58, typically 32-44 characters)
+    if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmedText)) {
+      return true
+    }
+
+    // Generic contract address pattern (long alphanumeric strings)
+    if (trimmedText.length >= 26 && /^[a-zA-Z0-9]+$/.test(trimmedText)) {
+      // Check if it looks like a hash (high entropy)
+      const hasUpperCase = /[A-Z]/.test(trimmedText)
+      const hasLowerCase = /[a-z]/.test(trimmedText)
+      const hasNumbers = /[0-9]/.test(trimmedText)
+
+      if ((hasUpperCase && hasLowerCase) || (hasNumbers && (hasUpperCase || hasLowerCase))) {
+        return true
+      }
+    }
+
+    return false
+  }
 
   // Translation function
   async function translateWithProvider(text: string, config: any): Promise<string> {

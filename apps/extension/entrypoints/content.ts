@@ -5,11 +5,25 @@ export default defineContentScript({
 
     let translationPopup: HTMLElement | null = null
     let currentSelection: Selection | null = null
+    let isClosing = false // Flag to prevent reopening during close
 
     // Listen for text selection events
     document.addEventListener('mouseup', handleMouseUp)
     document.addEventListener('keyup', handleKeyUp)
-    document.addEventListener('mousedown', hideTranslationPopup)
+    document.addEventListener('mousedown', (event) => {
+      // Don't hide if we're already closing or if no popup exists
+      if (isClosing || !translationPopup) {
+        return
+      }
+
+      // Don't hide if clicking on the popup itself
+      if (translationPopup.contains(event.target as Node)) {
+        return
+      }
+
+      // Hide the popup
+      hideTranslationPopup()
+    })
 
     function handleMouseUp(event: MouseEvent) {
       setTimeout(() => {
@@ -25,7 +39,12 @@ export default defineContentScript({
       }
     }
 
-    function handleTextSelection(event?: MouseEvent) {
+    async function handleTextSelection(event?: MouseEvent) {
+      // Don't show popup if we're in the process of closing
+      if (isClosing) {
+        return
+      }
+
       const selection = window.getSelection()
       if (!selection || selection.toString().trim().length === 0) {
         hideTranslationPopup()
@@ -38,8 +57,79 @@ export default defineContentScript({
         return
       }
 
+      // Check if text should be translated based on filter rules
+      const shouldTranslate = await checkTranslationRules(selectedText)
+      if (!shouldTranslate) {
+        hideTranslationPopup()
+        return
+      }
+
       currentSelection = selection
       showTranslationPopup(selectedText, event)
+    }
+
+    // Check if text matches translation rules
+    async function checkTranslationRules(text: string): Promise<boolean> {
+      try {
+        const response = await browser.runtime.sendMessage({
+          type: 'CHECK_TRANSLATION_RULES',
+          text: text,
+        })
+        return response.shouldTranslate
+      } catch (error) {
+        console.error('Failed to check translation rules:', error)
+        // Default to translate if rules check fails
+        return true
+      }
+    }
+
+    // Detect page theme (light/dark)
+    function detectPageTheme(): 'light' | 'dark' {
+      // Check CSS custom properties for theme
+      const computedStyle = window.getComputedStyle(document.documentElement)
+      const colorScheme = computedStyle.getPropertyValue('color-scheme')
+
+      if (colorScheme.includes('dark')) {
+        return 'dark'
+      }
+
+      // Check background color of body or html
+      const bodyStyle = window.getComputedStyle(document.body)
+      const htmlStyle = window.getComputedStyle(document.documentElement)
+
+      const bodyBg = bodyStyle.backgroundColor
+      const htmlBg = htmlStyle.backgroundColor
+
+      // Convert RGB to luminance to determine if it's dark
+      const getLuminance = (rgb: string) => {
+        const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+        if (!match) return 0.5
+
+        const [, r, g, b] = match.map(Number)
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        return luminance
+      }
+
+      const bodyLuminance = getLuminance(bodyBg)
+      const htmlLuminance = getLuminance(htmlBg)
+
+      // If either body or html has dark background, consider it dark theme
+      if (bodyLuminance < 0.5 || htmlLuminance < 0.5) {
+        return 'dark'
+      }
+
+      // Check for dark theme class names
+      const classList = [
+        ...document.documentElement.classList,
+        ...document.body.classList
+      ]
+
+      const darkClassNames = ['dark', 'dark-theme', 'theme-dark', 'dark-mode']
+      if (darkClassNames.some(className => classList.includes(className))) {
+        return 'dark'
+      }
+
+      return 'light'
     }
 
     function showTranslationPopup(text: string, event?: MouseEvent) {
@@ -78,6 +168,11 @@ export default defineContentScript({
     function createTranslationPopup(): HTMLElement {
       const popup = document.createElement('div')
       popup.className = 'wxt-translation-popup'
+
+      // Detect current page theme
+      const theme = detectPageTheme()
+      const isLight = theme === 'light'
+
       popup.innerHTML = `
         <div class="wxt-translation-header">
           <span class="wxt-translation-title">Translating...</span>
@@ -88,14 +183,14 @@ export default defineContentScript({
         </div>
       `
 
-      // Add styles
+      // Apply theme-adaptive styles
       popup.style.cssText = `
         position: absolute;
         z-index: 10000;
-        background: white;
-        border: 1px solid #ddd;
+        background: ${isLight ? 'white' : '#2d2d2d'};
+        border: 1px solid ${isLight ? '#ddd' : '#555'};
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px ${isLight ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.4)'};
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 14px;
         line-height: 1.4;
@@ -103,11 +198,16 @@ export default defineContentScript({
         min-width: 200px;
         padding: 0;
         margin: 0;
+        color: ${isLight ? '#333' : '#e0e0e0'};
       `
 
       // Add close button event
       const closeBtn = popup.querySelector('.wxt-translation-close') as HTMLElement
-      closeBtn.addEventListener('click', hideTranslationPopup)
+      closeBtn.addEventListener('click', (event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        hideTranslationPopup()
+      })
       closeBtn.style.cssText = `
         background: none;
         border: none;
@@ -119,18 +219,25 @@ export default defineContentScript({
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #666;
+        color: ${isLight ? '#666' : '#ccc'};
+        transition: color 0.2s ease;
       `
+      closeBtn.addEventListener('mouseenter', () => {
+        closeBtn.style.color = isLight ? '#000' : '#fff'
+      })
+      closeBtn.addEventListener('mouseleave', () => {
+        closeBtn.style.color = isLight ? '#666' : '#ccc'
+      })
 
-      // Style other elements
+      // Style other elements with theme adaptation
       const header = popup.querySelector('.wxt-translation-header') as HTMLElement
       header.style.cssText = `
         padding: 8px 12px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid ${isLight ? '#eee' : '#444'};
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #f9f9f9;
+        background: ${isLight ? '#f9f9f9' : '#383838'};
         border-radius: 8px 8px 0 0;
       `
 
@@ -141,7 +248,7 @@ export default defineContentScript({
 
       const loading = popup.querySelector('.wxt-translation-loading') as HTMLElement
       loading.style.cssText = `
-        color: #666;
+        color: ${isLight ? '#666' : '#aaa'};
         font-style: italic;
       `
 
@@ -158,28 +265,23 @@ export default defineContentScript({
 
         const content = popup.querySelector('.wxt-translation-content') as HTMLElement
         const title = popup.querySelector('.wxt-translation-title') as HTMLElement
+        const theme = detectPageTheme()
+        const isLight = theme === 'light'
+
         console.log(response)
         if (response.success) {
-          title.textContent = 'Translation Result'
+          title.textContent = 'Translation'
+          // Only show translation result, not original text
           content.innerHTML = `
-            <div class="wxt-original-text">${text}</div>
             <div class="wxt-translation-result">${response.result}</div>
           `
 
-          // Style results
-          const originalText = content.querySelector('.wxt-original-text') as HTMLElement
-          originalText.style.cssText = `
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-          `
-
+          // Style translation result with theme adaptation
           const translationResult = content.querySelector('.wxt-translation-result') as HTMLElement
           translationResult.style.cssText = `
-            color: #333;
+            color: ${isLight ? '#333' : '#e0e0e0'};
             font-weight: 500;
+            line-height: 1.5;
           `
         } else {
           throw new Error(response.error || 'Translation failed')
@@ -188,6 +290,8 @@ export default defineContentScript({
         console.error('Translation error:', error)
         const content = popup.querySelector('.wxt-translation-content') as HTMLElement
         const title = popup.querySelector('.wxt-translation-title') as HTMLElement
+        const theme = detectPageTheme()
+        const isLight = theme === 'light'
 
         title.textContent = 'Translation Failed'
         content.innerHTML = `
@@ -196,24 +300,40 @@ export default defineContentScript({
 
         const errorMsg = content.querySelector('.wxt-error-message') as HTMLElement
         errorMsg.style.cssText = `
-          color: #e74c3c;
+          color: ${isLight ? '#e74c3c' : '#ff6b6b'};
           font-size: 13px;
+          line-height: 1.4;
         `
       }
     }
 
     function hideTranslationPopup() {
       if (translationPopup) {
+        isClosing = true
         translationPopup.remove()
         translationPopup = null
+
+        // Reset the closing flag after a short delay to allow for any pending events
+        setTimeout(() => {
+          isClosing = false
+        }, 100)
       }
     }
 
     // Hide popup when clicking elsewhere on the page
     document.addEventListener('click', event => {
-      if (translationPopup && !translationPopup.contains(event.target as Node)) {
-        hideTranslationPopup()
+      // Don't hide if we're already closing or if no popup exists
+      if (isClosing || !translationPopup) {
+        return
       }
+
+      // Don't hide if clicking on the popup itself
+      if (translationPopup.contains(event.target as Node)) {
+        return
+      }
+
+      // Hide the popup
+      hideTranslationPopup()
     })
   },
 })
