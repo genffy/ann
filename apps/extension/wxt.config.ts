@@ -7,7 +7,7 @@ export default defineConfig({
     name: 'Text Selection Translation',
     description: 'Translate selected text instantly with multiple translation services',
     version: '1.0.0',
-    permissions: ['storage', 'activeTab'],
+    permissions: ['storage', 'activeTab', 'tabs'],
     host_permissions: [
       'https://translation.googleapis.com/*',
       'https://translate.googleapis.com/*',
@@ -18,7 +18,11 @@ export default defineConfig({
     ],
     action: {
       default_popup: 'popup/index.html',
-      default_title: 'Text Selection Translation Settings',
+      default_title: 'Text Selection Translation',
+    },
+    options_ui: {
+      page: 'options/index.html',
+      open_in_tab: true,
     },
     content_security_policy: {
       extension_pages: "script-src 'self'; object-src 'self';",

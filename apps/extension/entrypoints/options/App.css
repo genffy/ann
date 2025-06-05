@@ -1,0 +1,361 @@
+/* 整体布局 */
+.options-layout {
+    display: flex;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* 侧边栏 */
+.sidebar {
+    width: 240px;
+    background: #ffffff;
+    border-right: 1px solid #e1e4e8;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid #e1e4e8;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.sidebar-header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 16px 0;
+}
+
+.nav-item {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #24292f;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.nav-item:hover {
+    background-color: #f6f8fa;
+}
+
+.nav-item.active {
+    background-color: #e7f3ff;
+    border-right: 3px solid #0969da;
+    color: #0969da;
+    font-weight: 500;
+}
+
+.nav-icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-label {
+    flex: 1;
+}
+
+/* 主内容区 */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.content-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.content-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
+    margin-bottom: 24px;
+}
+
+.content-section h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #24292f;
+}
+
+.section-description {
+    margin: 0 0 32px 0;
+    font-size: 16px;
+    color: #656d76;
+    line-height: 1.5;
+}
+
+/* 设置组 */
+.settings-group {
+    margin-bottom: 32px;
+}
+
+.settings-group:last-child {
+    margin-bottom: 0;
+}
+
+.settings-group h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #24292f;
+}
+
+/* 复选框组 */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #24292f;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 12px;
+    width: 16px;
+    height: 16px;
+    accent-color: #0969da;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    flex: 1;
+}
+
+/* 选择框 */
+.select-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #24292f;
+    cursor: pointer;
+}
+
+.select-input:focus {
+    outline: none;
+    border-color: #0969da;
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.12);
+}
+
+/* 输入框组 */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group:last-child {
+    margin-bottom: 0;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #24292f;
+}
+
+.text-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #24292f;
+    font-family: inherit;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #0969da;
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.12);
+}
+
+.text-input::placeholder {
+    color: #8c959f;
+}
+
+.input-help {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #656d76;
+}
+
+.input-help a {
+    color: #0969da;
+    text-decoration: none;
+}
+
+.input-help a:hover {
+    text-decoration: underline;
+}
+
+/* 保存区域 */
+.save-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.save-button {
+    background-color: #0969da;
+    color: #ffffff;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+}
+
+.save-button:hover:not(:disabled) {
+    background-color: #0860ca;
+}
+
+.save-button:disabled {
+    background-color: #8c959f;
+    cursor: not-allowed;
+}
+
+.save-message {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 200px;
+}
+
+.save-message.success {
+    background-color: #dafbe1;
+    color: #116329;
+    border: 1px solid #a2f2c4;
+}
+
+.save-message.error {
+    background-color: #ffebe9;
+    color: #cf222e;
+    border: 1px solid #ff818a;
+}
+
+/* 关于页面 */
+.about-info {
+    line-height: 1.6;
+}
+
+.about-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #24292f;
+}
+
+.about-info h4 {
+    margin: 24px 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #24292f;
+}
+
+.about-info p {
+    margin: 8px 0;
+    color: #656d76;
+}
+
+.about-info ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.about-info li {
+    margin: 4px 0;
+    color: #656d76;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .content-wrapper {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .options-layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e1e4e8;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        overflow-x: auto;
+        padding: 0;
+    }
+
+    .nav-item {
+        white-space: nowrap;
+        min-width: auto;
+        padding: 12px 16px;
+    }
+
+    .nav-item.active {
+        border-right: none;
+        border-bottom: 3px solid #0969da;
+    }
+
+    .content-wrapper {
+        padding: 16px;
+    }
+
+    .content-section {
+        padding: 20px;
+    }
+
+    .text-input,
+    .select-input {
+        max-width: 100%;
+    }
+}
