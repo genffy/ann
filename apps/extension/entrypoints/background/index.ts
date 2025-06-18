@@ -3,9 +3,18 @@ export default defineBackground(() => {
 
   // Default translation configuration
   const defaultConfig = {
-    provider: 'google',
-    targetLanguage: 'zh',
-    sourceLanguage: 'auto',
+    enableGoogleTranslate: true,
+    enableBaiduTranslate: false,
+    enableYoudaoTranslate: false,
+    defaultTranslationService: 'google',
+    targetLanguage: 'zh-CN',
+    showTranslationOnHover: true,
+    autoDetectLanguage: true,
+    // 域名白名单配置，默认仅在 x.com 下开启
+    domainWhitelist: {
+      enabled: true,
+      domains: ['x.com', 'twitter.com']
+    },
     apiKeys: {
       google: {
         key: '',
@@ -45,6 +54,54 @@ export default defineBackground(() => {
     }
     if (!config.translationRules) {
       await browser.storage.sync.set({ translationRules: defaultTranslationRules })
+    }
+
+    // Create context menu
+    createContextMenu()
+  })
+
+  // Create context menu for domain whitelist management  
+  async function createContextMenu() {
+    // Remove existing menu items first
+    browser.contextMenus.removeAll()
+
+    // Create menu item for domain management
+    browser.contextMenus.create({
+      id: 'domain-whitelist-toggle',
+      title: '检查域名状态...',
+      contexts: ['page'],
+    })
+  }
+
+  // Handle context menu clicks
+  browser.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (info.menuItemId === 'domain-whitelist-toggle' && tab?.url) {
+      const url = new URL(tab.url)
+      const domain = url.hostname
+
+      // Toggle domain in whitelist
+      await toggleDomainInWhitelist(domain)
+
+      // Update context menu to reflect new state
+      await updateContextMenuForDomain(domain)
+    }
+  })
+
+  // Handle tab updates to refresh context menu
+  browser.tabs.onActivated.addListener(async (activeInfo) => {
+    const tab = await browser.tabs.get(activeInfo.tabId)
+    if (tab.url) {
+      const url = new URL(tab.url)
+      const domain = url.hostname
+      await updateContextMenuForDomain(domain)
+    }
+  })
+
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (changeInfo.url && tab.url) {
+      const url = new URL(tab.url)
+      const domain = url.hostname
+      await updateContextMenuForDomain(domain)
     }
   })
 
@@ -88,6 +145,19 @@ export default defineBackground(() => {
       browser.storage.sync.set({ translationRules: message.rules }).then(() => {
         sendResponse({ success: true })
       })
+      return true // Indicates async response
+    }
+
+    if (message.type === 'CHECK_DOMAIN_WHITELIST') {
+      ; (async () => {
+        try {
+          const isAllowed = await checkDomainWhitelist(message.domain)
+          sendResponse({ isAllowed })
+        } catch (error) {
+          console.error('Error checking domain whitelist:', error)
+          sendResponse({ isAllowed: false }) // Default to not allowed on error
+        }
+      })()
       return true // Indicates async response
     }
 
@@ -160,6 +230,130 @@ export default defineBackground(() => {
     } catch (error) {
       console.error('Error in checkTranslationRules:', error)
       return true // Default to translate on error
+    }
+  }
+
+  // Toggle domain in whitelist
+  async function toggleDomainInWhitelist(domain: string) {
+    try {
+      const config = await browser.storage.sync.get('translationConfig')
+      const translationConfig = config.translationConfig || defaultConfig
+
+      if (!translationConfig.domainWhitelist) {
+        translationConfig.domainWhitelist = { enabled: true, domains: [] }
+      }
+
+      const domains = translationConfig.domainWhitelist.domains || []
+      const domainIndex = domains.indexOf(domain)
+
+      if (domainIndex === -1) {
+        // Add domain to whitelist
+        domains.push(domain)
+        console.log(`Added domain to whitelist: ${domain}`)
+      } else {
+        // Remove domain from whitelist
+        domains.splice(domainIndex, 1)
+        console.log(`Removed domain from whitelist: ${domain}`)
+      }
+
+      translationConfig.domainWhitelist.domains = domains
+      await browser.storage.sync.set({ translationConfig })
+
+      // Notify content scripts about the change
+      browser.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+          if (tab.id) {
+            browser.tabs.sendMessage(tab.id, {
+              type: 'DOMAIN_WHITELIST_UPDATED',
+              domain: domain
+            }).catch(() => {
+              // Ignore errors for tabs that don't have content scripts
+            })
+          }
+        })
+      })
+    } catch (error) {
+      console.error('Error toggling domain in whitelist:', error)
+    }
+  }
+
+  // Update context menu for specific domain
+  async function updateContextMenuForDomain(domain: string) {
+    try {
+      const config = await browser.storage.sync.get('translationConfig')
+      const translationConfig = config.translationConfig || defaultConfig
+
+      if (!translationConfig.domainWhitelist) {
+        translationConfig.domainWhitelist = { enabled: true, domains: [] }
+      }
+
+      const domains = translationConfig.domainWhitelist.domains || []
+      const isInWhitelist = domains.includes(domain)
+      const isWhitelistEnabled = translationConfig.domainWhitelist.enabled
+
+      let title = ''
+      if (!isWhitelistEnabled) {
+        title = `域名白名单已禁用 (${domain})`
+      } else if (isInWhitelist) {
+        title = `从白名单移除 "${domain}"`
+      } else {
+        title = `添加 "${domain}" 到白名单`
+      }
+
+      browser.contextMenus.update('domain-whitelist-toggle', {
+        title: title,
+        enabled: isWhitelistEnabled
+      })
+    } catch (error) {
+      console.error('Error updating context menu:', error)
+    }
+  }
+
+  // Check if domain is in whitelist
+  async function checkDomainWhitelist(domain: string): Promise<boolean> {
+    try {
+      const config = await browser.storage.sync.get('translationConfig')
+      const translationConfig = config.translationConfig || defaultConfig
+
+      // If domain whitelist is disabled, allow all domains
+      if (!translationConfig.domainWhitelist || !translationConfig.domainWhitelist.enabled) {
+        return true
+      }
+
+      const allowedDomains = translationConfig.domainWhitelist.domains || []
+
+      // Check exact domain match or regex patterns
+      for (const allowedDomain of allowedDomains) {
+        // Direct match
+        if (domain === allowedDomain) {
+          return true
+        }
+
+        // Check if it's a subdomain (e.g., m.x.com matches x.com)
+        if (domain.endsWith('.' + allowedDomain)) {
+          return true
+        }
+
+        // Try to use as regex pattern (must contain main domain)
+        try {
+          const regex = new RegExp(allowedDomain, 'i')
+          if (regex.test(domain)) {
+            // Additional check: ensure the main domain is included
+            const mainDomain = allowedDomain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            if (domain.includes(allowedDomain.replace(/[.*+?^${}()|[\]\\]/g, ''))) {
+              return true
+            }
+          }
+        } catch (error) {
+          // If regex is invalid, treat as literal string
+          console.warn('Invalid regex pattern in domain whitelist:', allowedDomain, error)
+        }
+      }
+
+      return false
+    } catch (error) {
+      console.error('Error in checkDomainWhitelist:', error)
+      return false // Default to not allowed on error
     }
   }
 

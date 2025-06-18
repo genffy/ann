@@ -6,6 +6,10 @@ export interface TranslationConfig {
     targetLanguage: string
     showTranslationOnHover: boolean
     autoDetectLanguage: boolean
+    domainWhitelist: {
+        enabled: boolean
+        domains: string[]
+    }
     apiKeys: {
         google: { key: string }
         baidu: { appId: string, key: string }

@@ -7,7 +7,7 @@ export default defineConfig({
     name: 'Text Selection Translation',
     description: 'Translate selected text instantly with multiple translation services',
     version: '1.0.0',
-    permissions: ['storage', 'activeTab', 'tabs'],
+    permissions: ['storage', 'activeTab', 'tabs', 'contextMenus'],
     host_permissions: [
       'https://translation.googleapis.com/*',
       'https://translate.googleapis.com/*',

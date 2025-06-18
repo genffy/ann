@@ -20,6 +20,10 @@ function App() {
         targetLanguage: 'zh-CN',
         showTranslationOnHover: true,
         autoDetectLanguage: true,
+        domainWhitelist: {
+            enabled: true,
+            domains: ['x.com', 'twitter.com']
+        },
         apiKeys: {
             google: { key: '' },
             baidu: { appId: '', key: '' },
