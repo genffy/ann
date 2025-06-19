@@ -394,7 +394,7 @@ export default defineBackground(() => {
 
   // Translation function
   async function translateWithProvider(text: string, config: any): Promise<string> {
-    switch (config.provider) {
+    switch (config.defaultTranslationService) {
       case 'google':
         return await translateWithGoogle(text, config.targetLanguage)
       case 'baidu':
