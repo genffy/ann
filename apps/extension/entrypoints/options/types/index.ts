@@ -17,11 +17,19 @@ export interface TranslationConfig {
     }
 }
 
-export type MenuSection = 'general' | 'apiKeys' | 'advanced' | 'about'
+export type MenuSection = 'translation' | 'about'
 
 export interface MenuItem {
     id: MenuSection
     label: string
     icon: string
     path: string
+}
+
+export type TabType = 'basic' | 'apiKeys' | 'advanced' | 'domainWhitelist'
+
+export interface TabItem {
+    id: TabType
+    label: string
+    icon: string
 } 

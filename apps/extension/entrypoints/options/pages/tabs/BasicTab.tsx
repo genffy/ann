@@ -1,11 +1,11 @@
-import { TranslationConfig } from '../types'
+import { TranslationConfig } from '../../types'
 
-interface GeneralPageProps {
+interface BasicTabProps {
     config: TranslationConfig
     onConfigChange: (key: keyof TranslationConfig, value: any) => void
 }
 
-export default function GeneralPage({ config, onConfigChange }: GeneralPageProps) {
+export default function BasicTab({ config, onConfigChange }: BasicTabProps) {
     const languageOptions = [
         { value: 'zh-CN', label: '简体中文' },
         { value: 'zh-TW', label: '繁体中文' },
@@ -19,9 +19,7 @@ export default function GeneralPage({ config, onConfigChange }: GeneralPageProps
     ]
 
     return (
-        <div className="content-section">
-            <h2>基本设置</h2>
-
+        <div className="tab-content">
             <div className="settings-group">
                 <h3>翻译服务</h3>
                 <div className="checkbox-group">

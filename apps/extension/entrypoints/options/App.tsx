@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 
 // 导入页面组件
-import GeneralPage from './pages/GeneralPage'
-import ApiKeysPage from './pages/ApiKeysPage'
-import AdvancedPage from './pages/AdvancedPage'
+import TranslationPage from './pages/TranslationPage'
 import AboutPage from './pages/AboutPage'
 
 // 导入类型和路由
@@ -36,20 +34,16 @@ function App() {
 
     // 定义路由
     const routes: Route[] = [
-        { path: '/general', component: GeneralPage },
-        { path: '/api-keys', component: ApiKeysPage },
-        { path: '/advanced', component: AdvancedPage },
+        { path: '/translation', component: TranslationPage },
         { path: '/about', component: AboutPage },
     ]
 
     // 使用路由
-    const { currentPath, currentRoute, navigate, isActive } = useRouter(routes, '/general')
+    const { currentPath, currentRoute, navigate, isActive } = useRouter(routes, '/translation')
 
     // 菜单项配置
     const menuItems: MenuItem[] = [
-        { id: 'general', label: '基本设置', icon: '⚙️', path: '/general' },
-        { id: 'apiKeys', label: 'API 密钥', icon: '🔑', path: '/api-keys' },
-        { id: 'advanced', label: '高级设置', icon: '🔧', path: '/advanced' },
+        { id: 'translation', label: '翻译设置', icon: '🌐', path: '/translation' },
         { id: 'about', label: '关于', icon: 'ℹ️', path: '/about' },
     ]
 
@@ -110,12 +104,12 @@ function App() {
         const Component = currentRoute.component
 
         switch (currentPath) {
-            case '/general':
-                return <Component config={config} onConfigChange={handleConfigChange} />
-            case '/api-keys':
-                return <Component config={config} onApiKeyChange={handleApiKeyChange} />
-            case '/advanced':
-                return <Component config={config} onConfigChange={handleConfigChange} />
+            case '/translation':
+                return <Component
+                    config={config}
+                    onConfigChange={handleConfigChange}
+                    onApiKeyChange={handleApiKeyChange}
+                />
             case '/about':
                 return <Component />
             default:

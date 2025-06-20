@@ -1,16 +1,13 @@
-import { TranslationConfig } from '../types'
+import { TranslationConfig } from '../../types'
 
-interface ApiKeysPageProps {
+interface ApiKeysTabProps {
     config: TranslationConfig
     onApiKeyChange: (service: 'google' | 'baidu' | 'youdao', key: string, value: string) => void
 }
 
-export default function ApiKeysPage({ config, onApiKeyChange }: ApiKeysPageProps) {
+export default function ApiKeysTab({ config, onApiKeyChange }: ApiKeysTabProps) {
     return (
-        <div className="content-section">
-            <h2>API 密钥设置</h2>
-            <p className="section-description">配置各翻译服务的 API 密钥以提升翻译质量和配额</p>
-
+        <div className="tab-content">
             <div className="settings-group">
                 <h3>Google Cloud Translation API</h3>
                 <div className="input-group">
