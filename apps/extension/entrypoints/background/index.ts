@@ -1,705 +1,114 @@
+import { ConfigManager } from '../../modules/config/config-manager'
+import { TranslationService } from '../../modules/services/translation/translation-service'
+import { MessageRouter } from '../../modules/handlers/message-router'
+import { ContextMenuManager } from '../../modules/services/menu/context-menu'
+import { Logger } from '../../modules/utils/helpers'
+
 export default defineBackground(() => {
-  console.log('Translation extension background loaded', { id: browser.runtime.id })
+  Logger.info('Translation extension background loaded', { id: browser.runtime.id })
 
-  // Default translation configuration
-  const defaultConfig = {
-    enableGoogleTranslate: true,
-    enableBaiduTranslate: false,
-    enableYoudaoTranslate: false,
-    defaultTranslationService: 'google',
-    targetLanguage: 'zh-CN',
-    showTranslationOnHover: true,
-    autoDetectLanguage: true,
-    // 域名白名单配置，默认仅在 x.com 下开启
-    domainWhitelist: {
-      enabled: true,
-      domains: ['x.com', 'twitter.com']
-    },
-    apiKeys: {
-      google: {
-        key: '',
-      },
-      baidu: {
-        appId: '',
-        key: '',
-      },
-      youdao: {
-        appKey: '',
-        appSecret: '',
-      },
-    },
-    translationRules: {
-      enabled: true,
-      skipChinese: false,
-      skipNumbers: true,
-      skipCryptoAddresses: true,
-      customRules: [],
-    },
-  }
+  // 服务实例
+  const translationService = TranslationService.getInstance()
+  const messageRouter = MessageRouter.getInstance()
+  const contextMenuManager = ContextMenuManager.getInstance()
 
-  // Default translation rules
-  const defaultTranslationRules = {
-    enabled: true,
-    skipChinese: false,
-    skipNumbers: true,
-    skipCryptoAddresses: true,
-    customRules: [],
-  }
-
-  // Initialize configuration
+  // 初始化扩展
   browser.runtime.onInstalled.addListener(async () => {
-    const config = await browser.storage.sync.get(['translationConfig', 'translationRules'])
-    if (!config.translationConfig) {
-      await browser.storage.sync.set({ translationConfig: defaultConfig })
-    }
-    if (!config.translationRules) {
-      await browser.storage.sync.set({ translationRules: defaultTranslationRules })
-    }
+    try {
+      Logger.info('Extension installed, initializing...')
 
-    // Create context menu
-    createContextMenu()
-  })
+      // 初始化配置
+      await ConfigManager.initializeConfig()
+      Logger.info('Configuration initialized')
 
-  // Create context menu for domain whitelist management  
-  async function createContextMenu() {
-    // Remove existing menu items first
-    browser.contextMenus.removeAll()
+      // 初始化翻译服务
+      await translationService.initialize()
+      Logger.info('Translation service initialized')
 
-    // Create menu item for domain management
-    browser.contextMenus.create({
-      id: 'domain-whitelist-toggle',
-      title: '检查域名状态...',
-      contexts: ['page'],
-    })
-  }
+      // 初始化上下文菜单
+      await contextMenuManager.initialize()
+      Logger.info('Context menu initialized')
 
-  // Handle context menu clicks
-  browser.contextMenus.onClicked.addListener(async (info, tab) => {
-    if (info.menuItemId === 'domain-whitelist-toggle' && tab?.url) {
-      const url = new URL(tab.url)
-      const domain = url.hostname
+      // 初始化消息路由
+      messageRouter.initialize()
+      Logger.info('Message router initialized')
 
-      // Toggle domain in whitelist
-      await toggleDomainInWhitelist(domain)
-
-      // Update context menu to reflect new state
-      await updateContextMenuForDomain(domain)
+      Logger.info('Extension initialization completed successfully')
+    } catch (error) {
+      Logger.error('Extension initialization failed:', error)
     }
   })
 
-  // Handle tab updates to refresh context menu
-  browser.tabs.onActivated.addListener(async (activeInfo) => {
-    const tab = await browser.tabs.get(activeInfo.tabId)
-    if (tab.url) {
-      const url = new URL(tab.url)
-      const domain = url.hostname
-      await updateContextMenuForDomain(domain)
+  // 处理扩展启动（浏览器启动时）
+  browser.runtime.onStartup.addListener(async () => {
+    try {
+      Logger.info('Extension startup, re-initializing services...')
+
+      // 重新初始化服务
+      await translationService.initialize()
+      await contextMenuManager.initialize()
+      messageRouter.initialize()
+
+      Logger.info('Extension startup initialization completed')
+    } catch (error) {
+      Logger.error('Extension startup initialization failed:', error)
     }
   })
 
-  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (changeInfo.url && tab.url) {
-      const url = new URL(tab.url)
-      const domain = url.hostname
-      await updateContextMenuForDomain(domain)
-    }
-  })
+  // 处理扩展更新
+  browser.runtime.onInstalled.addListener(async (details) => {
+    if (details.reason === 'update') {
+      Logger.info('Extension updated, checking for migration...')
 
-  // Handle messages from content script
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'GET_TRANSLATION_CONFIG') {
-      browser.storage.sync.get('translationConfig').then(config => {
-        sendResponse(config.translationConfig || defaultConfig)
-      })
-      return true // Indicates async response
-    }
-
-    if (message.type === 'SET_TRANSLATION_CONFIG') {
-      browser.storage.sync.set({ translationConfig: message.config }).then(() => {
-        sendResponse({ success: true })
-      })
-      return true // Indicates async response
-    }
-
-    if (message.type === 'CHECK_TRANSLATION_RULES') {
-      ; (async () => {
-        try {
-          const shouldTranslate = await checkTranslationRules(message.text)
-          sendResponse({ shouldTranslate })
-        } catch (error) {
-          console.error('Error checking translation rules:', error)
-          sendResponse({ shouldTranslate: true }) // Default to translate on error
-        }
-      })()
-      return true // Indicates async response
-    }
-
-    if (message.type === 'GET_TRANSLATION_RULES') {
-      browser.storage.sync.get('translationRules').then(config => {
-        sendResponse(config.translationRules || defaultTranslationRules)
-      })
-      return true // Indicates async response
-    }
-
-    if (message.type === 'SET_TRANSLATION_RULES') {
-      browser.storage.sync.set({ translationRules: message.rules }).then(() => {
-        sendResponse({ success: true })
-      })
-      return true // Indicates async response
-    }
-
-    if (message.type === 'CHECK_DOMAIN_WHITELIST') {
-      ; (async () => {
-        try {
-          const isAllowed = await checkDomainWhitelist(message.domain)
-          sendResponse({ isAllowed })
-        } catch (error) {
-          console.error('Error checking domain whitelist:', error)
-          sendResponse({ isAllowed: false }) // Default to not allowed on error
-        }
-      })()
-      return true // Indicates async response
-    }
-
-    if (message.type === 'TRANSLATE_TEXT') {
-      ; (async () => {
-        const config = await browser.storage.sync.get('translationConfig')
-        const translationConfig = config.translationConfig || defaultConfig
-
-        try {
-          const result = await translateWithProvider(message.text, translationConfig)
-          sendResponse({ success: true, result })
-        } catch (error) {
-          console.error('Background translation error:', error)
-          // Try fallback translation
-          try {
-            const fallbackResult = await fallbackTranslation(message.text)
-            sendResponse({ success: true, result: fallbackResult })
-          } catch (fallbackError: any) {
-            sendResponse({ success: false, error: fallbackError.message })
-          }
-        }
-      })()
-      return true // Indicates async response
-    }
-  })
-
-  // Check if text should be translated based on rules
-  async function checkTranslationRules(text: string): Promise<boolean> {
-    try {
-      const config = await browser.storage.sync.get('translationRules')
-      const rules = config.translationRules || defaultTranslationRules
-
-      // If rules are disabled, translate everything
-      if (!rules.enabled) {
-        return true
-      }
-
-      // Check if text is only Chinese characters
-      if (rules.skipChinese && /^[\u4e00-\u9fa5\s\p{P}]*$/u.test(text)) {
-        return false
-      }
-
-      // Check if text is only numbers
-      if (rules.skipNumbers && /^[\d\s\.\,\-\+]*$/.test(text)) {
-        return false
-      }
-
-      // Check if text is a cryptocurrency contract address
-      if (rules.skipCryptoAddresses && isCryptoAddress(text)) {
-        return false
-      }
-
-      // Check custom rules
-      if (rules.customRules && rules.customRules.length > 0) {
-        for (const rule of rules.customRules) {
-          if (rule.enabled && rule.pattern) {
-            try {
-              const regex = new RegExp(rule.pattern, rule.flags || 'i')
-              if (regex.test(text)) {
-                return false
-              }
-            } catch (error) {
-              console.warn('Invalid custom rule pattern:', rule.pattern, error)
-            }
-          }
-        }
-      }
-
-      return true
-    } catch (error) {
-      console.error('Error in checkTranslationRules:', error)
-      return true // Default to translate on error
-    }
-  }
-
-  // Toggle domain in whitelist
-  async function toggleDomainInWhitelist(domain: string) {
-    try {
-      const config = await browser.storage.sync.get('translationConfig')
-      const translationConfig = config.translationConfig || defaultConfig
-
-      if (!translationConfig.domainWhitelist) {
-        translationConfig.domainWhitelist = { enabled: true, domains: [] }
-      }
-
-      const domains = translationConfig.domainWhitelist.domains || []
-      const domainIndex = domains.indexOf(domain)
-
-      if (domainIndex === -1) {
-        // Add domain to whitelist
-        domains.push(domain)
-        console.log(`Added domain to whitelist: ${domain}`)
-      } else {
-        // Remove domain from whitelist
-        domains.splice(domainIndex, 1)
-        console.log(`Removed domain from whitelist: ${domain}`)
-      }
-
-      translationConfig.domainWhitelist.domains = domains
-      await browser.storage.sync.set({ translationConfig })
-
-      // Notify content scripts about the change
-      browser.tabs.query({}, (tabs) => {
-        tabs.forEach(tab => {
-          if (tab.id) {
-            browser.tabs.sendMessage(tab.id, {
-              type: 'DOMAIN_WHITELIST_UPDATED',
-              domain: domain
-            }).catch(() => {
-              // Ignore errors for tabs that don't have content scripts
-            })
-          }
-        })
-      })
-    } catch (error) {
-      console.error('Error toggling domain in whitelist:', error)
-    }
-  }
-
-  // Update context menu for specific domain
-  async function updateContextMenuForDomain(domain: string) {
-    try {
-      const config = await browser.storage.sync.get('translationConfig')
-      const translationConfig = config.translationConfig || defaultConfig
-
-      if (!translationConfig.domainWhitelist) {
-        translationConfig.domainWhitelist = { enabled: true, domains: [] }
-      }
-
-      const domains = translationConfig.domainWhitelist.domains || []
-      const isInWhitelist = domains.includes(domain)
-      const isWhitelistEnabled = translationConfig.domainWhitelist.enabled
-
-      let title = ''
-      if (!isWhitelistEnabled) {
-        title = `域名白名单已禁用 (${domain})`
-      } else if (isInWhitelist) {
-        title = `从白名单移除 "${domain}"`
-      } else {
-        title = `添加 "${domain}" 到白名单`
-      }
-
-      browser.contextMenus.update('domain-whitelist-toggle', {
-        title: title,
-        enabled: isWhitelistEnabled
-      })
-    } catch (error) {
-      console.error('Error updating context menu:', error)
-    }
-  }
-
-  // Check if domain is in whitelist
-  async function checkDomainWhitelist(domain: string): Promise<boolean> {
-    try {
-      const config = await browser.storage.sync.get('translationConfig')
-      const translationConfig = config.translationConfig || defaultConfig
-
-      // If domain whitelist is disabled, allow all domains
-      if (!translationConfig.domainWhitelist || !translationConfig.domainWhitelist.enabled) {
-        return true
-      }
-
-      const allowedDomains = translationConfig.domainWhitelist.domains || []
-
-      // Check exact domain match or regex patterns
-      for (const allowedDomain of allowedDomains) {
-        // Direct match
-        if (domain === allowedDomain) {
-          return true
-        }
-
-        // Check if it's a subdomain (e.g., m.x.com matches x.com)
-        if (domain.endsWith('.' + allowedDomain)) {
-          return true
-        }
-
-        // Try to use as regex pattern (must contain main domain)
-        try {
-          const regex = new RegExp(allowedDomain, 'i')
-          if (regex.test(domain)) {
-            // Additional check: ensure the main domain is included
-            const mainDomain = allowedDomain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-            if (domain.includes(allowedDomain.replace(/[.*+?^${}()|[\]\\]/g, ''))) {
-              return true
-            }
-          }
-        } catch (error) {
-          // If regex is invalid, treat as literal string
-          console.warn('Invalid regex pattern in domain whitelist:', allowedDomain, error)
-        }
-      }
-
-      return false
-    } catch (error) {
-      console.error('Error in checkDomainWhitelist:', error)
-      return false // Default to not allowed on error
-    }
-  }
-
-  // Check if text is a cryptocurrency contract address
-  function isCryptoAddress(text: string): boolean {
-    const trimmedText = text.trim()
-
-    // Ethereum address (0x followed by 40 hex characters)
-    if (/^0x[a-fA-F0-9]{40}$/.test(trimmedText)) {
-      return true
-    }
-
-    // Bitcoin address patterns
-    if (/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(trimmedText) || // Legacy
-      /^bc1[a-z0-9]{39,59}$/.test(trimmedText)) { // Bech32
-      return true
-    }
-
-    // Solana address (base58, typically 32-44 characters)
-    if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmedText)) {
-      return true
-    }
-
-    // Generic contract address pattern (long alphanumeric strings)
-    if (trimmedText.length >= 26 && /^[a-zA-Z0-9]+$/.test(trimmedText)) {
-      // Check if it looks like a hash (high entropy)
-      const hasUpperCase = /[A-Z]/.test(trimmedText)
-      const hasLowerCase = /[a-z]/.test(trimmedText)
-      const hasNumbers = /[0-9]/.test(trimmedText)
-
-      if ((hasUpperCase && hasLowerCase) || (hasNumbers && (hasUpperCase || hasLowerCase))) {
-        return true
-      }
-    }
-
-    return false
-  }
-
-  // Translation function
-  async function translateWithProvider(text: string, config: any): Promise<string> {
-    switch (config.defaultTranslationService) {
-      case 'google':
-        return await translateWithGoogle(text, config.targetLanguage)
-      case 'baidu':
-        return await translateWithBaidu(text, config)
-      case 'youdao':
-        return await translateWithYoudao(text, config)
-      default:
-        throw new Error('Unknown translation provider')
-    }
-  }
-
-  async function translateWithGoogle(text: string, targetLang: string = 'zh'): Promise<string> {
-    try {
-      // Get configuration, check if Google API key exists
-      const config = await browser.storage.sync.get('translationConfig')
-      const googleApiKey = config.translationConfig?.apiKeys?.google?.key
-      console.log('Google API key:', googleApiKey)
-      // If API key exists, use official Cloud Translation API
-      if (googleApiKey) {
-        return await translateWithGoogleCloudAPI(text, targetLang, googleApiKey)
-      }
-
-      // Otherwise use free translation interface
-      return await translateWithGoogleFreeAPI(text, targetLang)
-    } catch (error) {
-      console.error('Google translation error:', error)
-      throw error
-    }
-  }
-
-  // Google Cloud Translation API (Official interface)
-  async function translateWithGoogleCloudAPI(text: string, targetLang: string, apiKey: string): Promise<string> {
-    try {
-      const url = 'https://translation.googleapis.com/language/translate/v2'
-      const params = new URLSearchParams({
-        key: apiKey,
-        q: text,
-        target: targetLang,
-        format: 'text',
-      })
-
-      const response = await fetch(`${url}?${params}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`Google API HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-
-      // Handle response format according to official documentation
-      if (data && data.data && data.data.translations && data.data.translations.length > 0) {
-        const translation = data.data.translations[0]
-        if (translation.translatedText) {
-          return translation.translatedText
-        }
-      }
-
-      throw new Error('Invalid response format from Google Cloud Translation API')
-    } catch (error) {
-      console.error('Google Cloud API error:', error)
-      throw error
-    }
-  }
-
-  // Google free translation interface (Unofficial)
-  async function translateWithGoogleFreeAPI(text: string, targetLang: string): Promise<string> {
-    const apis = [
-      {
-        url: `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`,
-        parseResponse: (data: any) => {
-          // Google Translate free interface returns complex array structure
-          if (data && Array.isArray(data) && data[0]) {
-            if (Array.isArray(data[0])) {
-              // Standard format: [[[translated text, original text, null, null, language code]], null, language code]
-              const translations = data[0].map((item: any[]) => item[0]).filter(Boolean)
-              if (translations.length > 0) {
-                return translations.join('')
-              }
-            }
-          }
-          return null
-        },
-      },
-      {
-        url: `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl=${targetLang}&q=${encodeURIComponent(text)}`,
-        parseResponse: (data: any) => {
-          // Chrome extension interface format
-          if (data && data.sentences && Array.isArray(data.sentences)) {
-            const translations = data.sentences.map((sentence: any) => sentence.trans).filter(Boolean)
-            if (translations.length > 0) {
-              return translations.join('')
-            }
-          }
-          return null
-        },
-      },
-      {
-        url: `https://translate.google.com/translate_a/single?client=webapp&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`,
-        parseResponse: (data: any) => {
-          // Web application interface format
-          if (data && Array.isArray(data) && data[0] && Array.isArray(data[0])) {
-            const result = data[0]
-              .map((item: any[]) => item[0])
-              .filter(Boolean)
-              .join('')
-            return result || null
-          }
-          return null
-        },
-      },
-    ]
-
-    for (const api of apis) {
       try {
-        const response = await fetch(api.url, {
-          method: 'GET',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Referer': 'https://translate.google.com/',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-
-        let data
-        const contentType = response.headers.get('content-type')
-
-        if (contentType && contentType.includes('application/json')) {
-          data = await response.json()
-        } else {
-          // Some interfaces may return JavaScript format, requiring special handling
-          const text = await response.text()
-          try {
-            // Remove possible JSON-P wrapper
-            const jsonMatch = text.match(/(?:\w+\()?(\[.*\])(?:\))?/)
-            if (jsonMatch) {
-              data = JSON.parse(jsonMatch[1])
-            } else {
-              data = JSON.parse(text)
-            }
-          } catch (parseError) {
-            console.warn('Failed to parse response:', parseError)
-            continue
-          }
-        }
-
-        const result = api.parseResponse(data)
-        if (result) {
-          return result
-        }
-      } catch (apiError) {
-        console.warn(`Free API ${api.url} failed:`, apiError)
-        continue
+        // 这里可以添加版本迁移逻辑
+        await handleVersionUpdate(details.previousVersion)
+        Logger.info('Extension update handled successfully')
+      } catch (error) {
+        Logger.error('Extension update handling failed:', error)
       }
     }
+  })
 
-    throw new Error('All Google Translate free APIs failed')
-  }
-
-  // Baidu Translation API implementation
-  async function translateWithBaidu(text: string, config: any): Promise<string> {
-    const { appId, key } = config.apiKeys.baidu
-    if (!appId || !key) {
-      throw new Error('Baidu translation requires API credentials')
+  /**
+   * 处理版本更新
+   * @param previousVersion 之前的版本号
+   */
+  async function handleVersionUpdate(previousVersion?: string): Promise<void> {
+    if (!previousVersion) {
+      return
     }
 
-    // Generate signature (MD5 implementation required)
-    const salt = Date.now().toString()
-    const query = text
-    const from = 'auto'
-    const to = config.targetLanguage === 'zh' ? 'zh' : config.targetLanguage
+    Logger.info(`Updating from version ${previousVersion}`)
 
-    // Generate signature (MD5 implementation required)
-    const sign = generateMD5(`${appId}${query}${salt}${key}`)
+    // 这里可以添加具体的迁移逻辑
+    // 例如：配置格式更新、数据迁移等
 
-    const url = 'https://fanyi-api.baidu.com/api/trans/vip/translate'
-    const params = new URLSearchParams({
-      q: query,
-      from: from,
-      to: to,
-      appid: appId,
-      salt: salt,
-      sign: sign,
+    // 更新配置（确保新字段存在）
+    await ConfigManager.initializeConfig()
+
+    // 重新初始化服务
+    await translationService.updateConfig()
+    await contextMenuManager.recreateMenu()
+  }
+
+  // 错误处理
+  browser.runtime.onConnect.addListener((port) => {
+    port.onDisconnect.addListener(() => {
+      if (browser.runtime.lastError) {
+        Logger.error('Port disconnected with error:', browser.runtime.lastError)
+      }
     })
+  })
 
-    const response = await fetch(`${url}?${params}`)
-    const data = await response.json()
+  // 全局错误处理
+  self.addEventListener('error', (event) => {
+    Logger.error('Global error:', event.error)
+  })
 
-    if (data.error_code) {
-      throw new Error(`Baidu API Error: ${data.error_msg}`)
-    }
+  self.addEventListener('unhandledrejection', (event) => {
+    Logger.error('Unhandled promise rejection:', event.reason)
+  })
 
-    if (data.trans_result && data.trans_result[0]) {
-      return data.trans_result[0].dst
-    }
-
-    throw new Error('Baidu translation failed')
-  }
-
-  // Youdao Translation API implementation
-  async function translateWithYoudao(text: string, config: any): Promise<string> {
-    const { appKey, appSecret } = config.apiKeys.youdao
-    if (!appKey || !appSecret) {
-      throw new Error('Youdao translation requires API credentials')
-    }
-
-    // Youdao Translation API implementation
-    throw new Error('Youdao translation not implemented yet')
-  }
-
-  // Fallback translation solution
-  async function fallbackTranslation(text: string): Promise<string> {
-    // Simple word translation mapping
-    const translations: Record<string, string> = {
-      // 英文到中文
-      'hello': '你好',
-      'world': '世界',
-      'good': '好的',
-      'bad': '坏的',
-      'yes': '是',
-      'no': '不',
-      'thank you': '谢谢',
-      'please': '请',
-      'sorry': '对不起',
-      'welcome': '欢迎',
-      'goodbye': '再见',
-      'love': '爱',
-      'like': '喜欢',
-      'time': '时间',
-      'day': '天',
-      'night': '夜晚',
-      'morning': '早晨',
-      'afternoon': '下午',
-      'evening': '晚上',
-      'technology': '技术',
-      'artificial intelligence': '人工智能',
-      'machine learning': '机器学习',
-      'javascript': 'JavaScript',
-      'browser extension': '浏览器扩展',
-      'api integration': 'API集成',
-      'good luck': '祝你好运',
-      'see you later': '再见',
-      'have a nice day': '祝你有美好的一天',
-    }
-
-    const lowerText = text.toLowerCase().trim()
-
-    // Find exact match
-    if (translations[lowerText]) {
-      return translations[lowerText]
-    }
-
-    // Find partial match
-    for (const [key, value] of Object.entries(translations)) {
-      if (lowerText.includes(key) || key.includes(lowerText)) {
-        return value
-      }
-    }
-
-    // If it's Chinese, try to translate to English
-    if (/[\u4e00-\u9fa5]/.test(text)) {
-      const chineseToEnglish: Record<string, string> = {
-        你好: 'hello',
-        世界: 'world',
-        谢谢: 'thank you',
-        再见: 'goodbye',
-        爱: 'love',
-        时间: 'time',
-        早上: 'morning',
-        下午: 'afternoon',
-        晚上: 'evening',
-        技术: 'technology',
-        人工智能: 'artificial intelligence',
-      }
-
-      if (chineseToEnglish[text]) {
-        return chineseToEnglish[text]
-      }
-
-      // Partial match
-      for (const [key, value] of Object.entries(chineseToEnglish)) {
-        if (text.includes(key)) {
-          return value
-        }
-      }
-    }
-
-    // If no matching translation found, return original text with marker
-    return `[Translation needed] ${text}`
-  }
-
-  // Simple MD5 implementation (for Baidu translation signature)
-  function generateMD5(str: string): string {
-    // Should implement real MD5 algorithm here
-    // For simplification, temporarily return a fixed value
-    // In actual use, need to import crypto library or MD5 implementation
-    return 'placeholder_md5_hash'
-  }
+  Logger.info('Background script setup completed')
 })
