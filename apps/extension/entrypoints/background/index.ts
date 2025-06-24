@@ -39,6 +39,102 @@ export default defineBackground(() => {
     }
   })
 
+  // 处理快捷键命令
+  browser.commands.onCommand.addListener(async (command) => {
+    Logger.info('Command received:', command)
+
+    try {
+      if (command === 'capture-selection') {
+        // 获取当前活动标签页
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+
+        if (!tab?.id) {
+          Logger.error('No active tab found')
+          return
+        }
+
+        Logger.info('Triggering screenshot for tab:', tab.id)
+
+        // 向 content script 发送截图命令
+        try {
+          await browser.tabs.sendMessage(tab.id, {
+            type: 'TRIGGER_SCREENSHOT',
+            command: command
+          })
+          Logger.info('Screenshot command sent to content script')
+        } catch (error) {
+          Logger.error('Failed to send message to content script:', error)
+
+          // 尝试注入 content script（如果还没有注入）
+          try {
+            await browser.scripting.executeScript({
+              target: { tabId: tab.id },
+              func: () => {
+                // 通知页面截图命令
+                window.dispatchEvent(new CustomEvent('ann-screenshot-trigger', {
+                  detail: { command: 'capture-screenshot' }
+                }))
+              }
+            })
+            Logger.info('Screenshot event dispatched via script injection')
+          } catch (injectionError) {
+            Logger.error('Failed to inject script:', injectionError)
+          }
+        }
+      }
+    } catch (error) {
+      Logger.error('Command handling failed:', error)
+    }
+  })
+
+  // 处理来自 content script 的截图请求
+  browser.runtime.onMessage.addListener(async (message, sender) => {
+    if (message.type === 'CAPTURE_VISIBLE_TAB') {
+      try {
+        Logger.info('Capturing visible tab...')
+
+        const tab = sender.tab
+        if (!tab?.windowId) {
+          throw new Error('No valid tab found')
+        }
+
+        // 捕获可见标签页
+        const dataUrl = await browser.tabs.captureVisibleTab(tab.windowId, {
+          format: 'png',
+          quality: 90
+        })
+
+        Logger.info('Tab captured successfully')
+
+        // 将截图数据发送回 content script
+        if (tab.id) {
+          await browser.tabs.sendMessage(tab.id, {
+            type: 'SCREENSHOT_CAPTURED',
+            dataUrl: dataUrl,
+            requestId: message.requestId
+          })
+        }
+
+        return { success: true }
+      } catch (error) {
+        Logger.error('Screenshot capture failed:', error)
+
+        // 发送错误信息
+        if (sender.tab?.id) {
+          await browser.tabs.sendMessage(sender.tab.id, {
+            type: 'SCREENSHOT_ERROR',
+            error: error instanceof Error ? error.message : String(error),
+            requestId: message.requestId
+          })
+        }
+
+        return { success: false, error: error instanceof Error ? error.message : String(error) }
+      }
+    }
+
+    return undefined
+  })
+
   // 处理扩展启动（浏览器启动时）
   browser.runtime.onStartup.addListener(async () => {
     try {

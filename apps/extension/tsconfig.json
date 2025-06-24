@@ -1,10 +1,49 @@
 {
   "extends": "./.wxt/tsconfig.json",
   "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
     "types": [
       "chrome"
-    ]
-  }
+    ],
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    /* shadcn/ui path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/utils/*": [
+        "./lib/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules"
+  ],
 }
