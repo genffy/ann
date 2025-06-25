@@ -1,4 +1,5 @@
-import { defaultTranslationConfig, defaultTranslationRules, TranslationConfig, TranslationRules } from './default-config'
+import { defaultTranslationConfig, defaultTranslationRules } from './default-config'
+import type { TranslationConfig, TranslationRules } from '../../types/translate'
 
 export class ConfigManager {
     /**

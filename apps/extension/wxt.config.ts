@@ -1,4 +1,5 @@
 import { defineConfig } from 'wxt'
+import { ANN_SELECTION_KEY } from './constants'
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -16,7 +17,8 @@ export default defineConfig({
       'contextMenus',
       'commands',        // 快捷键支持
       'downloads',       // 文件下载支持
-      'scripting'        // 脚本注入支持
+      'scripting',       // 脚本注入支持
+      'sidePanel'        // 侧边栏支持
     ],
     host_permissions: [
       'https://translation.googleapis.com/*',
@@ -35,8 +37,13 @@ export default defineConfig({
       page: 'options/index.html',
       open_in_tab: true,
     },
+    side_panel: {
+      default_path: 'sidepanel/index.html',
+      open_panel_on_action_click: true
+    },
+
     commands: {
-      'capture-selection': {
+      [ANN_SELECTION_KEY]: {
         suggested_key: {
           default: 'Ctrl+Shift+S',
           mac: 'Command+Shift+S'

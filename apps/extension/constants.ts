@@ -1,3 +1,4 @@
+export const ANN_SELECTION_KEY = 'capture-selection'
 // 应用配置常量
 export const APP_CONFIG = {
     name: 'ANN - Advanced Text Toolkit',

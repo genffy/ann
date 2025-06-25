@@ -8,7 +8,6 @@
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px;
       line-height: 1.6;
@@ -103,6 +102,18 @@
       border-radius: 3px;
       font-size: 0.9em;
     }
+
+    .section img {
+      transition: border-color 0.3s ease;
+    }
+
+    body.dark-theme .section img {
+      border-color: #555;
+    }
+
+    body.dark-theme .section p {
+      color: #ccc;
+    }
   </style>
 </head>
 
@@ -110,10 +121,15 @@
   <div class="container">
     <h1>🌐 Text Selection Translation Test Page</h1>
 
-    <div style="text-align: center; margin-bottom: 20px;">
+    <div
+      style="text-align: center; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
       <button id="themeToggle"
         style="padding: 8px 16px; border: none; border-radius: 4px; background: #007aff; color: white; cursor: pointer;">
         🌙 Switch to Dark Theme
+      </button>
+      <button id="demoToggle"
+        style="padding: 8px 16px; border: none; border-radius: 4px; background: #28a745; color: white; cursor: pointer;">
+        🔍 Start Mixed Content Demo
       </button>
     </div>
 
@@ -157,6 +173,18 @@
     <div class="section">
       <h2>Long Text Test</h2>
       <div class="test-text">
+        The development of artificial intelligence has reached unprecedented heights in recent years. Machine
+        learning algorithms are now capable of performing complex tasks that were once thought to be exclusively
+        human. From natural language processing to computer vision, AI systems are becoming increasingly
+        sophisticated and finding applications in various fields such as healthcare, finance, education, and
+        entertainment.
+      </div>
+    </div>
+
+    <!-- add section for container with scrollbar -->
+    <div class="section">
+      <h2>Long Text Test with Scrollbar</h2>
+      <div class="test-text" style="height: 100px; overflow-y: auto;">
         The development of artificial intelligence has reached unprecedented heights in recent years. Machine
         learning algorithms are now capable of performing complex tasks that were once thought to be exclusively
         human. From natural language processing to computer vision, AI systems are becoming increasingly
@@ -218,6 +246,54 @@
         Have a nice day
       </div>
     </div>
+    <div class="section">
+      <h2>Mixed Content Test</h2>
+      <div style="margin: 10px 0;">
+        <p>Test selection of mixed content (text + images):</p>
+
+        <div class="test-text" style="display: flex; align-items: center; gap: 15px; padding: 20px;">
+          <div style="flex: 1;">
+            <h3 style="margin: 0 0 10px 0;">Browser Extension Development</h3>
+            <p style="margin: 0;">
+              This extension provides powerful text selection tools including highlighting, commenting, and screenshot
+              capabilities.
+              The following image shows the extension in action:
+            </p>
+          </div>
+          <img src="docs/images/image_select_translate.png" alt="Extension demo"
+            style="width: 120px; height: auto; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0;">
+        </div>
+
+        <div class="test-text" style="padding: 20px;">
+          <p style="margin: 0 0 15px 0;">
+            The translation feature supports multiple languages and providers. Here's how it works:
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <img src="docs/images/image_select_options.png" alt="Options"
+              style="width: 100px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+            <span style="flex: 1; min-width: 200px;">
+              Select your preferred translation service from the options panel, configure API keys, and customize the
+              behavior.
+            </span>
+            <img src="docs/images/image_select_comment.png" alt="Comments"
+              style="width: 100px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+        </div>
+
+        <div class="test-text" style="padding: 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 100px 1fr; gap: 15px; align-items: center;">
+            <p style="margin: 0;">
+              Advanced screenshot functionality with intelligent area detection:
+            </p>
+            <img src="docs/images/image_screenshot.png" alt="Screenshot"
+              style="width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+            <p style="margin: 0;">
+              Automatically detects the best capture area based on your selection and page layout.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="instruction">
       <strong>Tips:</strong>
@@ -229,6 +305,11 @@
         <li>The popup will automatically adapt to light/dark theme</li>
         <li>Configure translation rules to skip certain types of text (numbers, crypto addresses, etc.)</li>
         <li>Test the "Translation Rules Test" section to see filtering in action</li>
+        <li>Try selecting text on the images in the "Image Test" section</li>
+        <li>Images show different usage scenarios of the extension</li>
+        <li>Test mixed content selection in the "Mixed Content Test" section</li>
+        <li>Select across text and images to see how the extension handles mixed content</li>
+        <li>Check the browser console to see detailed selection information</li>
       </ul>
     </div>
   </div>
@@ -236,7 +317,9 @@
   <script>
     // Theme toggle functionality
     const themeToggle = document.getElementById('themeToggle');
+    const demoToggle = document.getElementById('demoToggle');
     const body = document.body;
+    let demoActive = false;
 
     // Check for saved theme preference or default to light
     const currentTheme = localStorage.getItem('theme') || 'light';
@@ -254,6 +337,98 @@
       } else {
         themeToggle.textContent = '🌙 Switch to Dark Theme';
         localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // Mixed content demo functionality
+    let selectionListener = null;
+
+    demoToggle.addEventListener('click', () => {
+      if (!demoActive) {
+        // Start demo
+        console.log('=== Mixed Content Detection Demo Started ===');
+        console.log('Try selecting different content types on the page to see the detection in action!');
+
+        selectionListener = () => {
+          const selection = window.getSelection();
+
+          if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+            const text = selection.toString().trim();
+            const range = selection.getRangeAt(0);
+            const rangeRect = range.getBoundingClientRect();
+
+            // 改进的图片检测逻辑，避免重复
+            const addedImageSrcs = new Set();
+            const uniqueImages = [];
+            const allImages = document.querySelectorAll('img');
+
+            allImages.forEach(img => {
+              const imgRect = img.getBoundingClientRect();
+
+              // 检查图片是否与选择范围重叠
+              const isOverlapping = !(imgRect.right < rangeRect.left ||
+                imgRect.left > rangeRect.right ||
+                imgRect.bottom < rangeRect.top ||
+                imgRect.top > rangeRect.bottom);
+
+              if (isOverlapping) {
+                const imgKey = `${img.src}-${img.alt}-${Math.round(imgRect.x)}-${Math.round(imgRect.y)}`;
+                if (!addedImageSrcs.has(imgKey)) {
+                  addedImageSrcs.add(imgKey);
+                  uniqueImages.push({
+                    src: img.src,
+                    alt: img.alt,
+                    tagName: img.tagName,
+                    width: Math.round(imgRect.width),
+                    height: Math.round(imgRect.height)
+                  });
+                }
+              }
+            });
+
+            const hasImages = uniqueImages.length > 0;
+            const hasText = text.length > 0;
+
+            if (hasText || hasImages) {
+              console.log('Selection detected:', {
+                type: hasText && hasImages ? 'mixed' :
+                  hasText ? 'text-only' : 'image-only',
+                text: text,
+                textLength: text.length,
+                imageCount: uniqueImages.length,
+                images: uniqueImages
+              });
+
+              if (hasText && hasImages) {
+                console.log('🎯 Mixed content detected! This selection contains both text and images.');
+                console.log(`📄 Text: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`);
+                console.log(`🖼️ Images: ${uniqueImages.length} unique image(s)`);
+              } else if (hasImages) {
+                console.log('🖼️ Image-only selection detected!');
+                console.log(`Found ${uniqueImages.length} unique image(s)`);
+              } else {
+                console.log('📝 Text-only selection detected.');
+                console.log(`Text: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`);
+              }
+            }
+          }
+        };
+
+        document.addEventListener('selectionchange', selectionListener);
+        demoToggle.textContent = '⏹️ Stop Demo';
+        demoToggle.style.backgroundColor = '#dc3545';
+        demoActive = true;
+
+      } else {
+        // Stop demo
+        if (selectionListener) {
+          document.removeEventListener('selectionchange', selectionListener);
+          selectionListener = null;
+        }
+        console.log('=== Mixed Content Detection Demo Stopped ===');
+        demoToggle.textContent = '🔍 Start Mixed Content Demo';
+        demoToggle.style.backgroundColor = '#28a745';
+        demoActive = false;
       }
     });
   </script>

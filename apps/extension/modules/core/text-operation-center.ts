@@ -1,7 +1,11 @@
 import { useAppStore, type TextSelection } from '../store'
-import { domUtils, textUtils, errorUtils, debounce } from '../helpers'
-import { APP_CONFIG, EVENT_TYPES, ERROR_TYPES } from '../constants'
+import { errorUtils } from '../../lib/logger'
+import { domUtils } from '../../lib/helpers/dom'
+import { textUtils } from '../../lib/helpers/text'
+import { debounce } from '../../lib/helpers'
+import { APP_CONFIG, EVENT_TYPES, ERROR_TYPES } from '../../constants'
 import type { PluginBase } from './plugin-base'
+import { TranslationPlugin } from '../plugins/translation-plugin'
 
 /**
  * TextOperationCenter - 文本操作中心
@@ -75,6 +79,9 @@ export class TextOperationCenter {
 
       // 初始化状态store
       this.initializeStores()
+
+      // 注册核心插件
+      await this.registerCorePlugins()
 
       // 触发初始化事件
       this.emit(EVENT_TYPES.CONTENT_READY, {
@@ -163,6 +170,24 @@ export class TextOperationCenter {
    */
   getPlugin(pluginName: string): PluginBase | undefined {
     return this.plugins.get(pluginName)
+  }
+
+  /**
+   * 注册核心插件
+   */
+  private async registerCorePlugins(): Promise<void> {
+    try {
+      console.log('[TextOperationCenter] Registering core plugins...')
+
+      // 注册翻译插件
+      const translationPlugin = new TranslationPlugin()
+      this.registerPlugin(translationPlugin)
+
+      console.log('[TextOperationCenter] Core plugins registered successfully')
+    } catch (error) {
+      errorUtils.log(error as Error, 'TextOperationCenter.registerCorePlugins')
+      console.error('[TextOperationCenter] Failed to register core plugins:', error)
+    }
   }
 
   /**

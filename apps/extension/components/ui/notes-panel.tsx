@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useAppStore, useNotesState } from '../../lib/store'
+import { useAppStore, useNotesState } from '../../modules/store'
 import { NoteRecord } from '../../lib/helpers'
 import { Button } from './button'
 

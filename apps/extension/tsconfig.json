@@ -28,20 +28,6 @@
     "noFallthroughCasesInSwitch": true,
     /* shadcn/ui path mapping */
     "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@/components/*": [
-        "./components/*"
-      ],
-      "@/lib/*": [
-        "./lib/*"
-      ],
-      "@/utils/*": [
-        "./lib/*"
-      ]
-    }
   },
   "exclude": [
     "node_modules"

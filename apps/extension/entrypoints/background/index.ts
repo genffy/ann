@@ -1,16 +1,13 @@
 import { ConfigManager } from '../../modules/config/config-manager'
 import { TranslationService } from '../../modules/services/translation/translation-service'
-import { MessageRouter } from '../../modules/handlers/message-router'
-import { ContextMenuManager } from '../../modules/services/menu/context-menu'
-import { Logger } from '../../modules/utils/helpers'
+import { Logger } from '../../lib/logger'
+import { ANN_SELECTION_KEY } from '../../constants'
 
 export default defineBackground(() => {
   Logger.info('Translation extension background loaded', { id: browser.runtime.id })
 
   // 服务实例
   const translationService = TranslationService.getInstance()
-  const messageRouter = MessageRouter.getInstance()
-  const contextMenuManager = ContextMenuManager.getInstance()
 
   // 初始化扩展
   browser.runtime.onInstalled.addListener(async () => {
@@ -25,14 +22,6 @@ export default defineBackground(() => {
       await translationService.initialize()
       Logger.info('Translation service initialized')
 
-      // 初始化上下文菜单
-      await contextMenuManager.initialize()
-      Logger.info('Context menu initialized')
-
-      // 初始化消息路由
-      messageRouter.initialize()
-      Logger.info('Message router initialized')
-
       Logger.info('Extension initialization completed successfully')
     } catch (error) {
       Logger.error('Extension initialization failed:', error)
@@ -44,7 +33,7 @@ export default defineBackground(() => {
     Logger.info('Command received:', command)
 
     try {
-      if (command === 'capture-selection') {
+      if (command === ANN_SELECTION_KEY) {
         // 获取当前活动标签页
         const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
 
@@ -84,6 +73,36 @@ export default defineBackground(() => {
       }
     } catch (error) {
       Logger.error('Command handling failed:', error)
+    }
+  })
+
+  // 处理侧边栏操作
+  browser.action.onClicked.addListener(async (tab) => {
+    try {
+      Logger.info('Extension icon clicked, opening sidebar')
+
+      // 打开侧边栏 - WXT会自动处理sidepanel entrypoint
+      if (tab.id) {
+        // 对于支持sidePanel API的浏览器
+        if (browser.sidePanel && browser.sidePanel.open) {
+          await browser.sidePanel.open({ tabId: tab.id })
+          Logger.info('Sidebar opened successfully')
+        } else {
+          // 回退到弹出窗口
+          Logger.warn('SidePanel API not supported, falling back to popup')
+          throw new Error('SidePanel not supported')
+        }
+      }
+    } catch (error) {
+      Logger.error('Failed to open sidebar:', error)
+
+      // 如果侧边栏不支持，则设置并打开popup
+      try {
+        await browser.action.setPopup({ popup: 'popup/index.html' })
+        Logger.info('Fallback to popup mode')
+      } catch (popupError) {
+        Logger.error('Failed to fallback to popup:', popupError)
+      }
     }
   })
 
@@ -142,8 +161,6 @@ export default defineBackground(() => {
 
       // 重新初始化服务
       await translationService.initialize()
-      await contextMenuManager.initialize()
-      messageRouter.initialize()
 
       Logger.info('Extension startup initialization completed')
     } catch (error) {
@@ -185,7 +202,6 @@ export default defineBackground(() => {
 
     // 重新初始化服务
     await translationService.updateConfig()
-    await contextMenuManager.recreateMenu()
   }
 
   // 错误处理

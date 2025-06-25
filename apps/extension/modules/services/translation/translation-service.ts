@@ -1,8 +1,5 @@
 import { BaseTranslator } from './providers/base-translator'
 import { GoogleTranslator } from './providers/google-translator'
-import { BaiduTranslator } from './providers/baidu-translator'
-import { YoudaoTranslator } from './providers/youdao-translator'
-import { TranslationConfig } from '../../config/default-config'
 import { ConfigManager } from '../../config/config-manager'
 
 export class TranslationService {
@@ -26,8 +23,6 @@ export class TranslationService {
 
         // 初始化各个翻译提供商
         this.translators.set('google', new GoogleTranslator(config))
-        this.translators.set('baidu', new BaiduTranslator(config))
-        this.translators.set('youdao', new YoudaoTranslator(config))
     }
 
     /**

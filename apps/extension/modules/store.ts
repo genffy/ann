@@ -1,6 +1,7 @@
 import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
-import { NoteRecord } from './helpers'
+import { devtools } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
+import { NoteRecord } from '../types/note'
 
 // 文本操作相关的状态类型
 export interface TextSelection {

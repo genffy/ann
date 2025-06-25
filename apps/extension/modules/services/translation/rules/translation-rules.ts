@@ -1,4 +1,3 @@
-import { TranslationRules } from '../../../config/default-config'
 import { ConfigManager } from '../../../config/config-manager'
 import { CryptoDetector } from './crypto-detector'
 

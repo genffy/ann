@@ -1,5 +1,5 @@
 import React from 'react'
-import { TextSelection } from '../../lib/store'
+import { TextSelection } from '../../modules/store'
 
 interface TextToolbarProps {
     selection: TextSelection | null

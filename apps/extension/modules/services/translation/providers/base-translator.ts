@@ -1,4 +1,4 @@
-import { TranslationConfig } from '../../../config/default-config'
+import type { TranslationConfig } from '../../../../types/translate'
 
 export interface TranslationResult {
     success: boolean
