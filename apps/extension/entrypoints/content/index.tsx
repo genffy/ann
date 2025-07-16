@@ -1,7 +1,8 @@
 import ReactDOM from 'react-dom/client'
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { debounce, domUtils } from '../../lib/helpers';
-
+import Highlight from './Highlight';
+import { HighlightService } from '../../modules/services/highlight/highlight-service';
 interface ToolbarPosition {
   x: number;
   y: number;
@@ -115,11 +116,11 @@ const getArrowStyle = (placement: TooltipPlacement) => {
 
 function Selection() {
   const [visible, setVisible] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<ToolbarPosition>({ x: 0, y: 0 });
   const [placement, setPlacement] = useState<TooltipPlacement>({ position: 'top', align: 'center' });
   const [selectionRange, setSelectionRange] = useState<Range | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-
+  const [activeFeature, setActiveFeature] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Calculate optimal placement based on viewport constraints
@@ -261,10 +262,9 @@ function Selection() {
   const clearTooltip = useCallback(() => {
     setVisible(false);
     setSelectionRange(null);
+    setActiveFeature(null);
     setTimeout(() => setIsAnimating(false), 200);
   }, []);
-
-
 
   useEffect(() => {
     const handleMouseUp = (event: MouseEvent) => {
@@ -341,8 +341,39 @@ function Selection() {
     }
   }, [visible, selectionRange, updateToolbarPosition]);
 
+  // Initialize highlight service on page load
+  const [highlightService] = useState(() => HighlightService.getInstance());
+  useEffect(() => {
+    const initializeHighlights = async () => {
+      try {
+        console.log('[Selection] Initializing highlight service...');
+        await highlightService.initialize();
+        console.log('[Selection] Highlight service initialized successfully');
+      } catch (error) {
+        console.error('[Selection] Failed to initialize highlight service:', error);
+      }
+    };
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeHighlights);
+    } else {
+      // DOM is already ready
+      initializeHighlights();
+    }
+
+    return () => {
+      document.removeEventListener('DOMContentLoaded', initializeHighlights);
+    };
+  }, [highlightService]);
+
   // Handle option click
   const handleOptionClick = useCallback((option: typeof options[number]) => {
+    if (option.label === 'Highlight') {
+      setActiveFeature('highlight');
+      return;
+    }
+
     // Clear browser selection
     const selection = window.getSelection();
     if (selection) {
@@ -356,8 +387,61 @@ function Selection() {
     clearTooltip();
   }, [selectionRange, clearTooltip]);
 
+  // Handle highlight created
+  const handleHighlightCreated = useCallback(() => {
+    // Clear browser selection
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+    }
+
+    // Clear component state
+    clearTooltip();
+  }, [clearTooltip]);
+
+  // Handle close feature
+  const handleCloseFeature = useCallback(() => {
+    setActiveFeature(null);
+  }, []);
+
+  // Render active feature component
+  const renderActiveFeature = () => {
+    if (!activeFeature || !selectionRange) return null;
+
+    switch (activeFeature) {
+      case 'highlight':
+        return (
+          <Highlight
+            selectedRange={selectionRange}
+            onHighlightCreated={handleHighlightCreated}
+            onClose={handleCloseFeature}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
+      {/* Active feature component */}
+      {activeFeature && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${toolbarPosition.x}px`,
+            top: `${toolbarPosition.y + 60}px`, // Position below toolbar
+            zIndex: 1000000,
+            opacity: 1,
+            transform: 'scale(1)',
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+          }}
+        >
+          {renderActiveFeature()}
+        </div>
+      )}
+
+      {/* Toolbar */}
       {(visible || isAnimating) && (
         <div
           ref={toolbarRef}

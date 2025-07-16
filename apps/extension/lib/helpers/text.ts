@@ -47,5 +47,14 @@ export const textUtils = {
         // 取前两句作为摘要
         const summary = sentences.slice(0, 2).join('. ').trim()
         return textUtils.truncate(summary, NOTES_CONFIG.summary.maxLength)
-    }
+    },
+
+    // 规范化文本（用于匹配）
+    normalize: (text: string): string => {
+        return text
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[^\w\s\u4e00-\u9fa5]/g, '')
+            .trim()
+    },
 }
