@@ -1,6 +1,7 @@
 import { BaseTranslator } from './providers/base-translator'
 import { GoogleTranslator } from './providers/google-translator'
-import { ConfigManager } from '../../config/config-manager'
+import { ConfigManager } from '../config'
+export { messageHandlers } from './message-handlers'
 
 export class TranslationService {
     private static instance: TranslationService
@@ -20,6 +21,12 @@ export class TranslationService {
      */
     async initialize(): Promise<void> {
         const config = await ConfigManager.getTranslationConfig()
+
+        // register message handlers
+        // allow to get `this` context in message handlers
+        // browser.runtime.onMessage.addListener(
+        //     MessageUtils.createMessageHandler(messageHandlers)
+        // )
 
         // 初始化各个翻译提供商
         this.translators.set('google', new GoogleTranslator(config))

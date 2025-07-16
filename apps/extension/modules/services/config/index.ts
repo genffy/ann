@@ -1,5 +1,6 @@
 import { defaultTranslationConfig, defaultTranslationRules } from './default-config'
-import type { TranslationConfig, TranslationRules } from '../../types/translate'
+import type { TranslationConfig, TranslationRules } from '../../../types/translate'
+export { messageHandlers } from './message-handles'
 
 export class ConfigManager {
     /**
@@ -35,7 +36,7 @@ export class ConfigManager {
     /**
      * 初始化配置 - 设置默认值（如果不存在）
      */
-    static async initializeConfig(): Promise<void> {
+    static async initialize(): Promise<void> {
         const config = await browser.storage.sync.get(['translationConfig', 'translationRules'])
 
         if (!config.translationConfig) {
@@ -45,6 +46,12 @@ export class ConfigManager {
         if (!config.translationRules) {
             await this.setTranslationRules(defaultTranslationRules)
         }
+
+        // register message handlers
+        // allow to get `this` context in message handlers
+        // browser.runtime.onMessage.addListener(
+        //     MessageUtils.createMessageHandler(messageHandlers)
+        // )
     }
 
     /**

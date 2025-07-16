@@ -1,8 +1,8 @@
 import { PluginBase } from '../core/plugin-base'
 import { useAppStore } from '../store'
-import { errorUtils } from '../../lib/logger'
+import { errorUtils } from '../../utils/logger'
 import { EVENT_TYPES } from '../../constants'
-import { TranslationService } from '../services/translation/translation-service'
+import { TranslationService } from '../services/translation'
 
 /**
  * 翻译插件

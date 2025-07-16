@@ -4,10 +4,14 @@ import './App.css'
 // 导入页面组件
 import TranslationPage from './pages/TranslationPage'
 import AboutPage from './pages/AboutPage'
+import HighlightPage from './pages/HighlightPage'
 
 // 导入类型和路由
-import { TranslationConfig, MenuItem } from './types'
+import { MenuItem } from './types'
+import { TranslationConfig } from '../../types/translate'
 import { useRouter, Route } from './hooks/useRouter'
+import MessageUtils from '../../utils/helpers/message-utils'
+
 
 function App() {
     const [config, setConfig] = useState<TranslationConfig>({
@@ -26,6 +30,13 @@ function App() {
             google: { key: '' },
             baidu: { appId: '', key: '' },
             youdao: { appKey: '', appSecret: '' }
+        },
+        translationRules: {
+            enabled: true,
+            skipChinese: false,
+            skipNumbers: true,
+            skipCryptoAddresses: true,
+            customRules: []
         }
     })
 
@@ -35,6 +46,7 @@ function App() {
     // 定义路由
     const routes: Route[] = [
         { path: '/translation', component: TranslationPage },
+        { path: '/highlights', component: HighlightPage },
         { path: '/about', component: AboutPage },
     ]
 
@@ -44,23 +56,35 @@ function App() {
     // 菜单项配置
     const menuItems: MenuItem[] = [
         { id: 'translation', label: '翻译设置', icon: '🌐', path: '/translation' },
+        { id: 'highlights', label: '高亮管理', icon: '📝', path: '/highlights' },
         { id: 'about', label: '关于', icon: 'ℹ️', path: '/about' },
     ]
 
-    // Load config from storage on component mount
+    // Load config from background script on component mount
     useEffect(() => {
-        chrome.storage.sync.get(['translationConfig']).then((result) => {
-            if (result.translationConfig) {
-                setConfig(prev => ({
-                    ...prev,
-                    ...result.translationConfig,
-                    apiKeys: {
-                        ...prev.apiKeys,
-                        ...result.translationConfig.apiKeys
-                    }
-                }))
+        const loadConfig = async () => {
+            try {
+                const response = await MessageUtils.sendMessage({
+                    type: 'GET_CONFIG',
+                    configType: 'translation'
+                })
+
+                if (response.success && response.data) {
+                    setConfig(prev => ({
+                        ...prev,
+                        ...response.data,
+                        apiKeys: {
+                            ...prev.apiKeys,
+                            ...response.data.apiKeys
+                        }
+                    }))
+                }
+            } catch (error) {
+                console.error('Failed to load config:', error)
             }
-        })
+        }
+
+        loadConfig()
     }, [])
 
     const handleConfigChange = (key: keyof TranslationConfig, value: any) => {
@@ -86,8 +110,17 @@ function App() {
     const handleSave = async () => {
         setIsSaving(true)
         try {
-            await chrome.storage.sync.set({ translationConfig: config })
-            setSaveMessage('配置已保存成功！')
+            const response = await MessageUtils.sendMessage({
+                type: 'SET_CONFIG',
+                configType: 'translation',
+                config: config
+            })
+
+            if (response.success) {
+                setSaveMessage('配置已保存成功！')
+            } else {
+                setSaveMessage(`保存失败：${response.error || '未知错误'}`)
+            }
             setTimeout(() => setSaveMessage(''), 3000)
         } catch (error) {
             setSaveMessage('保存失败，请重试')
@@ -110,6 +143,8 @@ function App() {
                     onConfigChange={handleConfigChange}
                     onApiKeyChange={handleApiKeyChange}
                 />
+            case '/highlights':
+                return <Component />
             case '/about':
                 return <Component />
             default:
@@ -144,7 +179,7 @@ function App() {
                     {renderCurrentPage()}
 
                     {/* 保存按钮区域 */}
-                    {currentPath !== '/about' && (
+                    {currentPath !== '/about' && currentPath !== '/highlights' && (
                         <div className="save-section">
                             <button
                                 onClick={handleSave}

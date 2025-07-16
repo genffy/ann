@@ -1,6 +1,12 @@
 import ReactDOM from 'react-dom/client'
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { debounce, domUtils } from '../../lib/helpers';
+import { debounce, domUtils } from '../../utils/helpers';
+import Highlight from './Highlight';
+import MessageUtils from '../../utils/helpers/message-utils';
+import { PageInfoUtils } from '../../utils/helpers/dom-client';
+import { HighlightRecord } from '../../types/highlight';
+import { HighlightService } from './highlight/service';
+import './style.css'
 
 interface ToolbarPosition {
   x: number;
@@ -115,11 +121,11 @@ const getArrowStyle = (placement: TooltipPlacement) => {
 
 function Selection() {
   const [visible, setVisible] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<ToolbarPosition>({ x: 0, y: 0 });
   const [placement, setPlacement] = useState<TooltipPlacement>({ position: 'top', align: 'center' });
   const [selectionRange, setSelectionRange] = useState<Range | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-
+  const [activeFeature, setActiveFeature] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Calculate optimal placement based on viewport constraints
@@ -261,10 +267,9 @@ function Selection() {
   const clearTooltip = useCallback(() => {
     setVisible(false);
     setSelectionRange(null);
+    setActiveFeature(null);
     setTimeout(() => setIsAnimating(false), 200);
   }, []);
-
-
 
   useEffect(() => {
     const handleMouseUp = (event: MouseEvent) => {
@@ -341,8 +346,33 @@ function Selection() {
     }
   }, [visible, selectionRange, updateToolbarPosition]);
 
+  // Initialize extension communication
+  // init highlights
+  // wait background script to initialize
+  const [highlightService] = useState(() => HighlightService.getInstance());
+
+  useEffect(() => {
+    const initializeExtension = async () => {
+      try {
+        console.log('[Selection] Initializing extension communication...');
+        await PageInfoUtils.waitForPageReady();
+        await highlightService.initialize();
+        console.log('[Selection] Extension communication initialized successfully');
+      } catch (error) {
+        console.error('[Selection] Failed to initialize extension communication:', error);
+      }
+    };
+
+    initializeExtension();
+  }, [highlightService]);
+
   // Handle option click
   const handleOptionClick = useCallback((option: typeof options[number]) => {
+    if (option.label === 'Highlight') {
+      setActiveFeature('highlight');
+      return;
+    }
+
     // Clear browser selection
     const selection = window.getSelection();
     if (selection) {
@@ -356,8 +386,61 @@ function Selection() {
     clearTooltip();
   }, [selectionRange, clearTooltip]);
 
+  // Handle highlight created
+  const handleHighlightCreated = useCallback(() => {
+    // Clear browser selection
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+    }
+
+    // Clear component state
+    clearTooltip();
+  }, [clearTooltip]);
+
+  // Handle close feature
+  const handleCloseFeature = useCallback(() => {
+    setActiveFeature(null);
+  }, []);
+
+  // Render active feature component
+  const renderActiveFeature = () => {
+    if (!activeFeature || !selectionRange) return null;
+
+    switch (activeFeature) {
+      case 'highlight':
+        return (
+          <Highlight
+            selectedRange={selectionRange}
+            onHighlightCreated={handleHighlightCreated}
+            onClose={handleCloseFeature}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
+      {/* Active feature component */}
+      {activeFeature && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${toolbarPosition.x}px`,
+            top: `${toolbarPosition.y + 60}px`, // Position below toolbar
+            zIndex: 1000000,
+            opacity: 1,
+            transform: 'scale(1)',
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+          }}
+        >
+          {renderActiveFeature()}
+        </div>
+      )}
+
+      {/* Toolbar */}
       {(visible || isAnimating) && (
         <div
           ref={toolbarRef}
@@ -444,5 +527,88 @@ export default defineContentScript({
       },
     })
     ui.mount()
+
+    // 监听来自popup/sidepanel的消息
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.type === 'LOCATE_HIGHLIGHT') {
+        locateHighlight(message.data.highlightId)
+          .then(result => sendResponse({ success: true, result }))
+          .catch(error => sendResponse({ success: false, error: error.message }))
+        return true // 保持消息通道开放以进行异步响应
+      }
+    })
   }
 })
+
+// 定位高亮的函数
+async function locateHighlight(highlightId: string) {
+  try {
+    // 通过background script获取高亮数据
+    const response = await MessageUtils.sendMessage({
+      type: 'GET_HIGHLIGHTS',
+      query: {
+        id: highlightId
+      }
+    })
+
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to get highlights')
+    }
+
+    const highlight = response.data as HighlightRecord
+
+    if (!highlight) {
+      throw new Error('Highlight not found')
+    }
+
+    // 如果不是当前页面的高亮，不处理
+    if (highlight.url !== window.location.href) {
+      throw new Error('Highlight is not on current page')
+    }
+
+    // 尝试通过选择器定位元素
+    const element = document.querySelector(highlight.selector) as HTMLElement
+    if (element) {
+      // 滚动到元素位置
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
+      })
+
+      // 添加临时高亮效果
+      const originalStyle = element.style.cssText
+      element.style.cssText += `
+        background-color: ${highlight.color} !important;
+        animation: highlight-pulse 2s ease-in-out;
+      `
+
+      // 添加脉冲动画样式
+      if (!document.getElementById('highlight-pulse-style')) {
+        const style = document.createElement('style')
+        style.id = 'highlight-pulse-style'
+        style.textContent = `
+          @keyframes highlight-pulse {
+            0% { box-shadow: 0 0 0 0 ${highlight.color}80; }
+            50% { box-shadow: 0 0 0 10px ${highlight.color}40; }
+            100% { box-shadow: 0 0 0 0 ${highlight.color}00; }
+          }
+        `
+        document.head.appendChild(style)
+      }
+
+      // 2秒后恢复原始样式
+      setTimeout(() => {
+        element.style.cssText = originalStyle
+      }, 2000)
+
+      return { success: true, message: 'Highlight located successfully' }
+    } else {
+      throw new Error('Could not locate highlight element')
+    }
+
+  } catch (error) {
+    console.error('[Content Script] Failed to locate highlight:', error)
+    throw error
+  }
+}

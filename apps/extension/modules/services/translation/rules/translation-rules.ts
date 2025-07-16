@@ -1,4 +1,4 @@
-import { ConfigManager } from '../../../config/config-manager'
+import { ConfigManager } from '../../config'
 import { CryptoDetector } from './crypto-detector'
 
 export class TranslationRulesChecker {

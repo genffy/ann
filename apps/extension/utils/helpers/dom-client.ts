@@ -1,4 +1,4 @@
-import { MixedSelectionContent } from "@/types/dom"
+import { MixedSelectionContent } from "../../types/dom"
 
 // DOM 操作工具
 export const domUtils = {
@@ -217,4 +217,187 @@ export const domUtils = {
             mixedContent
         }
     }
+
 }
+/**
+ * 范围选择转换工具
+ * 在content script和background script之间传递Range对象
+ */
+export class RangeUtils {
+    /**
+     * 将Range对象转换为可序列化的对象
+     * @param range Range对象
+     * @returns 序列化的范围对象
+     */
+    static serializeRange(range: Range): {
+        startOffset: number
+        endOffset: number
+        startContainerPath: string
+        endContainerPath: string
+    } {
+        return {
+            startOffset: range.startOffset,
+            endOffset: range.endOffset,
+            startContainerPath: this.getNodePath(range.startContainer),
+            endContainerPath: this.getNodePath(range.endContainer)
+        }
+    }
+
+    /**
+     * 从序列化对象恢复Range对象
+     * @param serialized 序列化的范围对象
+     * @returns Range对象
+     */
+    static deserializeRange(serialized: {
+        startOffset: number
+        endOffset: number
+        startContainerPath: string
+        endContainerPath: string
+    }): Range | null {
+        try {
+            const startContainer = this.getNodeFromPath(serialized.startContainerPath)
+            const endContainer = this.getNodeFromPath(serialized.endContainerPath)
+
+            if (!startContainer || !endContainer) {
+                return null
+            }
+
+            const range = document.createRange()
+            range.setStart(startContainer, serialized.startOffset)
+            range.setEnd(endContainer, serialized.endOffset)
+
+            return range
+        } catch (error) {
+            console.error('Failed to deserialize range:', error)
+            return null
+        }
+    }
+
+    /**
+     * 获取节点路径
+     * @param node 节点
+     * @returns 路径字符串
+     */
+    private static getNodePath(node: Node): string {
+        const path: number[] = []
+        let current = node
+
+        while (current && current.parentNode) {
+            const parent = current.parentNode
+            const siblings = Array.from(parent.childNodes)
+            const index = siblings.indexOf(current as ChildNode)
+            path.unshift(index)
+            current = parent
+        }
+
+        return path.join('/')
+    }
+
+    /**
+     * 从路径获取节点
+     * @param path 路径字符串
+     * @returns 节点
+     */
+    private static getNodeFromPath(path: string): Node | null {
+        const indices = path.split('/').map(Number)
+        let current: Node = document
+
+        for (const index of indices) {
+            if (!current.childNodes[index]) {
+                return null
+            }
+            current = current.childNodes[index]
+        }
+
+        return current
+    }
+
+    /**
+     * 生成CSS选择器
+     */
+    static generateSelector(range: Range): string {
+        const container = range.commonAncestorContainer
+        const element = container.nodeType === Node.TEXT_NODE
+            ? container.parentElement
+            : container as Element
+
+        if (!element) return ''
+
+        // 生成简单的选择器
+        let selector = element.tagName.toLowerCase()
+
+        if (element.id) {
+            selector += `#${element.id}`
+        } else if (element.className) {
+            const classes = element.className.split(' ').filter(c => c.trim())
+            if (classes.length > 0) {
+                selector += `.${classes.join('.')}`
+            }
+        }
+
+        return selector
+    }
+    /**
+     * 获取文本上下文
+     */
+    static getTextContext(range: Range, contextLength: number = 50): { before: string; after: string } {
+        const container = range.commonAncestorContainer
+        const fullText = container.textContent || ''
+        const startOffset = range.startOffset
+        const endOffset = range.endOffset
+
+        const before = fullText.substring(Math.max(0, startOffset - contextLength), startOffset)
+        const after = fullText.substring(endOffset, Math.min(fullText.length, endOffset + contextLength))
+
+        return { before, after }
+    }
+}
+
+/**
+ * 页面信息工具
+ */
+export class PageInfoUtils {
+    /**
+     * 获取当前页面信息
+     * @returns 页面信息
+     */
+    static getCurrentPageInfo(): {
+        url: string
+        title: string
+        domain: string
+    } {
+        return {
+            url: window.location.href,
+            title: document.title,
+            domain: window.location.hostname
+        }
+    }
+
+    /**
+     * 检查页面是否准备就绪
+     * @returns 是否准备就绪
+     */
+    static isPageReady(): boolean {
+        return document.readyState === 'complete' || document.readyState === 'interactive'
+    }
+
+    /**
+     * 等待页面准备就绪
+     * @returns Promise
+     */
+    static waitForPageReady(): Promise<void> {
+        return new Promise((resolve) => {
+            if (this.isPageReady()) {
+                resolve()
+            } else {
+                const handler = () => {
+                    if (this.isPageReady()) {
+                        document.removeEventListener('readystatechange', handler)
+                        resolve()
+                    }
+                }
+                document.addEventListener('readystatechange', handler)
+            }
+        })
+    }
+} 

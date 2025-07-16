@@ -1,5 +1,5 @@
 import { BaseTranslator } from './base-translator'
-import { TranslationConfig } from '../../../config/default-config'
+import { TranslationConfig } from '../../config/default-config'
 
 export class GoogleTranslator extends BaseTranslator {
     constructor(config: TranslationConfig) {

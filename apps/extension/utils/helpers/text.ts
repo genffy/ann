@@ -2,7 +2,7 @@ import { NOTES_CONFIG, TRANSLATION_CONFIG } from '../../constants'
 import CryptoJS from "crypto-js"
 
 // 文本处理工具
-export const textUtils = {
+export const TextUtils = {
     // 清理文本，移除多余空格和换行
     clean: (text: string): string => {
         return text.trim().replace(/\s+/g, ' ')
@@ -16,12 +16,12 @@ export const textUtils = {
 
     // 计算文本hash
     hash: (text: string): string => {
-        return CryptoJS.MD5(text).toString()
+        return CryptoJS.MD5(text.trim()).toString()
     },
 
     // 验证文本是否适合翻译
     isValidForTranslation: (text: string): boolean => {
-        const cleanText = textUtils.clean(text)
+        const cleanText = TextUtils.clean(text)
         return cleanText.length >= TRANSLATION_CONFIG.minTextLength &&
             cleanText.length <= TRANSLATION_CONFIG.maxTextLength
     },
@@ -42,10 +42,19 @@ export const textUtils = {
     // 生成摘要（简单版本）
     generateSummary: (text: string): string => {
         const sentences = text.split(/[.!?。！？]+/).filter(s => s.trim())
-        if (sentences.length <= 2) return textUtils.clean(text)
+        if (sentences.length <= 2) return TextUtils.clean(text)
 
         // 取前两句作为摘要
         const summary = sentences.slice(0, 2).join('. ').trim()
-        return textUtils.truncate(summary, NOTES_CONFIG.summary.maxLength)
-    }
+        return TextUtils.truncate(summary, NOTES_CONFIG.summary.maxLength)
+    },
+
+    // 规范化文本（用于匹配）
+    normalize: (text: string): string => {
+        return text
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[^\w\s\u4e00-\u9fa5]/g, '')
+            .trim()
+    },
 }

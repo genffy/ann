@@ -120,4 +120,4 @@ export function getRandomString(length: number = 8): string {
 }
 
 // 导出DOM工具
-export { domUtils } from './dom'
+export { domUtils } from './dom-client'

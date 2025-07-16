@@ -539,3 +539,16 @@
 .tab-content {
     padding: 0;
 }
+
+/* 高亮页面样式 */
+.highlight-page-container {
+    margin-top: 24px;
+    height: 600px;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.highlight-page-list {
+    height: 100%;
+}

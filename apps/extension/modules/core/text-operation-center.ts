@@ -1,8 +1,8 @@
 import { useAppStore, type TextSelection } from '../store'
-import { errorUtils } from '../../lib/logger'
-import { domUtils } from '../../lib/helpers/dom'
-import { textUtils } from '../../lib/helpers/text'
-import { debounce } from '../../lib/helpers'
+import { errorUtils } from '../../utils/logger'
+import { domUtils } from '../../utils/helpers/dom-client'
+import { TextUtils } from '../../utils/helpers/text'
+import { debounce } from '../../utils/helpers'
 import { APP_CONFIG, EVENT_TYPES, ERROR_TYPES } from '../../constants'
 import type { PluginBase } from './plugin-base'
 import { TranslationPlugin } from '../plugins/translation-plugin'
@@ -530,7 +530,7 @@ export class TextOperationCenter {
       return
     }
 
-    const selectedText = textUtils.clean(selection.toString())
+    const selectedText = TextUtils.clean(selection.toString())
 
     // 验证选择的文本
     if (!this.isValidSelection(selectedText)) {
