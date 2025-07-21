@@ -13,6 +13,7 @@ export default defineBackground(() => {
   const serviceContext = ServiceContext.getInstance()
 
   // 添加 PING 消息处理器（用于检测 service worker 状态）
+  // TODO 
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'PING') {
       Logger.info('Received PING, service worker is active')
