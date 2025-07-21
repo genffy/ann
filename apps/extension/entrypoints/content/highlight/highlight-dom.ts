@@ -1,4 +1,5 @@
 import { HighlightColor } from '../../../types/highlight'
+import { MixedSelectionContent } from '../../../types/dom'
 
 /**
  * DOM高亮管理器
@@ -606,5 +607,169 @@ export class HighlightDOMManager {
         })
 
         return { total, colors }
+    }
+
+    /**
+     * 生成CSS选择器
+     */
+    static generateSelector(range: Range): string {
+        const container = range.commonAncestorContainer
+        const element = container.nodeType === Node.TEXT_NODE
+            ? container.parentElement
+            : container as Element
+
+        if (!element) return ''
+
+        // 生成简单的选择器
+        let selector = element.tagName.toLowerCase()
+
+        if (element.id) {
+            selector += `#${element.id}`
+        } else if (element.className) {
+            const classes = element.className.split(' ').filter(c => c.trim())
+            if (classes.length > 0) {
+                selector += `.${classes.join('.')}`
+            }
+        }
+
+        return selector
+    }
+    /**
+     * 获取文本上下文
+     */
+    static getTextContext(range: Range, contextLength: number = 50): { before: string; after: string } {
+        const container = range.commonAncestorContainer
+        const fullText = container.textContent || ''
+        const startOffset = range.startOffset
+        const endOffset = range.endOffset
+
+        const before = fullText.substring(Math.max(0, startOffset - contextLength), startOffset)
+        const after = fullText.substring(endOffset, Math.min(fullText.length, endOffset + contextLength))
+
+        return { before, after }
+    }
+
+    // 检测选择内容是否包含图片以及提取混合内容
+    extractMixedSelectionContent(selection: Selection): MixedSelectionContent {
+        const result: MixedSelectionContent = {
+            text: '',
+            images: [],
+            hasText: false,
+            hasImages: false,
+            totalElements: 0
+        }
+
+        if (!selection || selection.rangeCount === 0) {
+            return result
+        }
+
+        const range = selection.getRangeAt(0)
+        const text = selection.toString().trim()
+
+        // 获取文本内容
+        if (text && text.length > 0) {
+            result.text = text
+            result.hasText = true
+        }
+
+        // 使用Set来追踪已添加的图片（通过src去重）
+        const addedImageSrcs = new Set<string>()
+
+        // 方法1：检查选择范围内所有图片元素（使用原始DOM，避免克隆问题）
+        try {
+            const rangeRect = range.getBoundingClientRect()
+            const allImages = document.querySelectorAll('img')
+
+            allImages.forEach(img => {
+                const imgRect = img.getBoundingClientRect()
+
+                // 检查图片是否与选择范围重叠或包含在内
+                if (this.isRectOverlapping(imgRect, rangeRect) ||
+                    this.isRectContained(imgRect, rangeRect)) {
+
+                    const imgSrc = img.src || img.dataset.src || ''
+                    const imgKey = `${imgSrc}-${img.alt}-${Math.round(imgRect.x)}-${Math.round(imgRect.y)}`
+
+                    // 使用更精确的去重标识
+                    if (!addedImageSrcs.has(imgKey)) {
+                        addedImageSrcs.add(imgKey)
+                        result.images.push({
+                            element: img,
+                            src: imgSrc,
+                            alt: img.alt || '',
+                            rect: imgRect
+                        })
+                        result.hasImages = true
+                    }
+                }
+            })
+        } catch (error) {
+            console.warn('Error checking image overlap:', error)
+        }
+
+        // 方法2：通过Range直接检查包含的节点（作为补充）
+        try {
+            const container = range.commonAncestorContainer
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_ELEMENT,
+                {
+                    acceptNode: (node) => {
+                        // 只接受在选择范围内的节点
+                        try {
+                            if (range.intersectsNode && range.intersectsNode(node)) {
+                                return NodeFilter.FILTER_ACCEPT
+                            }
+                            return NodeFilter.FILTER_SKIP
+                        } catch {
+                            return NodeFilter.FILTER_SKIP
+                        }
+                    }
+                }
+            )
+
+            let node: Element | null
+            while (node = walker.nextNode() as Element) {
+                result.totalElements++
+
+                if (node.tagName === 'IMG') {
+                    const img = node as HTMLImageElement
+                    const imgRect = img.getBoundingClientRect()
+                    const imgSrc = img.src || img.dataset.src || ''
+                    const imgKey = `${imgSrc}-${img.alt}-${Math.round(imgRect.x)}-${Math.round(imgRect.y)}`
+
+                    if (!addedImageSrcs.has(imgKey)) {
+                        addedImageSrcs.add(imgKey)
+                        result.images.push({
+                            element: img,
+                            src: imgSrc,
+                            alt: img.alt || '',
+                            rect: imgRect
+                        })
+                        result.hasImages = true
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Error traversing selection nodes:', error)
+        }
+
+        return result
+    }
+
+    // 检查两个矩形是否重叠
+    private isRectOverlapping(rect1: DOMRect, rect2: DOMRect): boolean {
+        return !(rect1.right < rect2.left ||
+            rect1.left > rect2.right ||
+            rect1.bottom < rect2.top ||
+            rect1.top > rect2.bottom)
+    }
+
+    // 检查rect1是否完全包含在rect2内
+    private isRectContained(rect1: DOMRect, rect2: DOMRect): boolean {
+        return rect1.left >= rect2.left &&
+            rect1.right <= rect2.right &&
+            rect1.top >= rect2.top &&
+            rect1.bottom <= rect2.bottom
     }
 } 

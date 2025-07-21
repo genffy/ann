@@ -1,6 +1,6 @@
 
 // 文件工具
-export const fileUtils = {
+export const FileUtils = {
     // 下载文件
     download: (blob: Blob, filename: string): void => {
         const url = URL.createObjectURL(blob)

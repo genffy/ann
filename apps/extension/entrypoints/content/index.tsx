@@ -1,9 +1,8 @@
 import ReactDOM from 'react-dom/client'
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { debounce, domUtils } from '../../utils/helpers';
+import { debounce } from '../../utils/helpers';
 import Highlight from './Highlight';
-import MessageUtils from '../../utils/helpers/message-utils';
-import { PageInfoUtils } from '../../utils/helpers/dom-client';
+import MessageUtils from '../../utils/message';
 import { HighlightRecord } from '../../types/highlight';
 import { HighlightService } from './highlight/service';
 import './style.css'
@@ -119,6 +118,33 @@ const getArrowStyle = (placement: TooltipPlacement) => {
   return arrowStyle;
 };
 
+/**
+ * 检查页面是否准备就绪
+ * @returns 是否准备就绪
+ */
+function isPageReady(): boolean {
+  return document.readyState === 'complete' || document.readyState === 'interactive'
+}
+
+/**
+ * 等待页面准备就绪
+ * @returns Promise
+ */
+function waitForPageReady(): Promise<void> {
+    return new Promise((resolve) => {
+        if (isPageReady()) {
+            resolve()
+        } else {
+            const handler = () => {
+                if (isPageReady()) {
+                    document.removeEventListener('readystatechange', handler)
+                    resolve()
+                }
+            }
+            document.addEventListener('readystatechange', handler)
+        }
+    })
+}
 function Selection() {
   const [visible, setVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -283,7 +309,7 @@ function Selection() {
         const selection = window.getSelection();
 
         if (selection && selection.rangeCount > 0) {
-          const selectionInfo = domUtils.getSelectionInfo(selection);
+          const selectionInfo = highlightService.getSelectionInfo(selection);
 
           if (selectionInfo.hasText || selectionInfo.hasImages) {
             const range = selection.getRangeAt(0);
@@ -301,7 +327,7 @@ function Selection() {
       const selection = window.getSelection();
 
       if (selection && selection.rangeCount > 0) {
-        const selectionInfo = domUtils.getSelectionInfo(selection);
+        const selectionInfo = highlightService.getSelectionInfo(selection);
 
         if (!selectionInfo.hasText && !selectionInfo.hasImages) {
           hideTooltip();
@@ -355,7 +381,7 @@ function Selection() {
     const initializeExtension = async () => {
       try {
         console.log('[Selection] Initializing extension communication...');
-        await PageInfoUtils.waitForPageReady();
+        await waitForPageReady();
         await highlightService.initialize();
         console.log('[Selection] Extension communication initialized successfully');
       } catch (error) {

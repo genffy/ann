@@ -10,7 +10,7 @@ import HighlightPage from './pages/HighlightPage'
 import { MenuItem } from './types'
 import { TranslationConfig } from '../../types/translate'
 import { useRouter, Route } from './hooks/useRouter'
-import MessageUtils from '../../utils/helpers/message-utils'
+import MessageUtils from '../../utils/message'
 
 
 function App() {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { HighlightRecord, HighlightQuery } from '../../types/highlight'
-import MessageUtils from '../../utils/helpers/message-utils'
+import MessageUtils from '../../utils/message'
 import './highlight-list.css'
 
 interface HighlightListProps {

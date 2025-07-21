@@ -1,10 +1,9 @@
 import { HighlightDOMManager } from './highlight-dom'
 import { HighlightRecord, HighlightResult } from '../../../types/highlight'
-import { TextUtils } from '../../../utils/helpers/text'
-import MessageUtils from '../../../utils/helpers/message-utils'
-import { RangeUtils } from '../../../utils/helpers/dom-client'
-import { nanoid } from 'nanoid'
+import MessageUtils from '../../../utils/message'
 import { HighlightStatsResponse } from '../../../types/messages'
+import { generateId, hash } from '../../../utils/helpers'
+import { MixedSelectionContent } from '../../../types/dom'
 
 /**
  * 高亮服务
@@ -25,6 +24,15 @@ export class HighlightService {
             HighlightService.instance = new HighlightService()
         }
         return HighlightService.instance
+    }
+
+     // 规范化文本（用于匹配）
+     private _normalize(text: string): string  {
+        return text
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[^\w\s\u4e00-\u9fa5]/g, '')
+            .trim()
     }
 
     /**
@@ -77,12 +85,12 @@ export class HighlightService {
                 return { success: false, error: 'No text selected' }
             }
             const rect = range.getBoundingClientRect()
-            const textHash = TextUtils.hash(text)
-            const selector = RangeUtils.generateSelector(range)
-            const context = RangeUtils.getTextContext(range)
+            const textHash = hash(text)
+            const selector = HighlightDOMManager.generateSelector(range)
+            const context = HighlightDOMManager.getTextContext(range)
 
             const highlight: HighlightRecord = {
-                id: nanoid(),
+                id: generateId(),
                 url: window.location.href,
                 domain: window.location.hostname,
                 selector,
@@ -312,8 +320,8 @@ export class HighlightService {
         }
 
         // 尝试模糊匹配
-        const normalizedTarget = TextUtils.normalize(targetText)
-        const normalizedFull = TextUtils.normalize(fullText)
+        const normalizedTarget = this._normalize(targetText)
+        const normalizedFull = this._normalize(fullText)
 
         index = normalizedFull.indexOf(normalizedTarget)
         if (index !== -1) {
@@ -428,6 +436,24 @@ export class HighlightService {
         return {
             storage: storageStats.data || { total: 0, active: 0, archived: 0, deleted: 0 },
             dom: domStats
+        }
+    }
+     // 获取选择内容的完整信息
+    getSelectionInfo(selection: Selection): {
+        text: string
+        hasText: boolean
+        hasImages: boolean
+        imageCount: number
+        mixedContent: MixedSelectionContent
+    } {
+        const mixedContent = this.domManager.extractMixedSelectionContent(selection)
+
+        return {
+            text: mixedContent.text,
+            hasText: mixedContent.hasText,
+            hasImages: mixedContent.hasImages,
+            imageCount: mixedContent.images.length,
+            mixedContent
         }
     }
 } 
