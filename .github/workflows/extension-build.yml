@@ -39,40 +39,45 @@ jobs:
           cd apps/extension
           yarn zip:firefox
 
-      - name: List generated files
-        working-directory: apps/extension
+      - name: Debug - List everything to find files
         run: |
-          echo "Generated zip files in .output directory:"
-          ls -la .output/*.zip
+          echo "=== Current working directory ==="
+          pwd
+          echo "=== Root directory contents ==="
+          ls -la
+          echo "=== apps/extension contents ==="
+          ls -la apps/extension/
+          echo "=== apps/extension/.output contents ==="
+          ls -la apps/extension/.output/ || echo "No .output in apps/extension"
+          echo "=== Looking for .output anywhere ==="
+          find . -name ".output" -type d
+          echo "=== Looking for *.zip files anywhere ==="
+          find . -name "*.zip" -type f
 
       - name: Upload Chrome extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: chrome-extension
-          path: .output/*-chrome.zip
+          path: apps/extension/.output/*chrome.zip
           retention-days: 30
-        working-directory: apps/extension
 
       - name: Upload Firefox extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
-          path: .output/*-firefox.zip
+          path: apps/extension/.output/*firefox.zip
           retention-days: 30
-        working-directory: apps/extension
 
       - name: Upload Firefox sources artifact
         uses: actions/upload-artifact@v4
         with:
           name: firefox-sources
-          path: .output/*-sources.zip
+          path: apps/extension/.output/*sources.zip
           retention-days: 30
-        working-directory: apps/extension
 
       - name: Upload all extension outputs
         uses: actions/upload-artifact@v4
         with:
           name: extension-outputs
-          path: .output/
+          path: apps/extension/.output/
           retention-days: 30
-        working-directory: apps/extension
