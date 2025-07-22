@@ -40,39 +40,39 @@ jobs:
           yarn zip:firefox
 
       - name: List generated files
+        working-directory: apps/extension
         run: |
-          echo "Listing .output directory contents:"
-          ls -la apps/extension/.output/
-          echo "Looking for zip files:"
-          find apps/extension/.output/ -name "*.zip" -type f
+          echo "Generated zip files in .output directory:"
+          ls -la .output/*.zip
 
       - name: Upload Chrome extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: chrome-extension
-          path: |
-            apps/extension/.output/*chrome.zip
+          path: .output/*-chrome.zip
           retention-days: 30
+        working-directory: apps/extension
 
       - name: Upload Firefox extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
-          path: |
-            apps/extension/.output/*firefox.zip
+          path: .output/*-firefox.zip
           retention-days: 30
+        working-directory: apps/extension
 
       - name: Upload Firefox sources artifact
         uses: actions/upload-artifact@v4
         with:
           name: firefox-sources
-          path: |
-            apps/extension/.output/*sources.zip
+          path: .output/*-sources.zip
           retention-days: 30
+        working-directory: apps/extension
 
       - name: Upload all extension outputs
         uses: actions/upload-artifact@v4
         with:
           name: extension-outputs
-          path: apps/extension/.output/
+          path: .output/
           retention-days: 30
+        working-directory: apps/extension
