@@ -136,7 +136,7 @@ export class InstallationHandler {
         newData.translationConfig = {
           ...oldData.oldTranslationConfig,
           // 添加新的默认字段
-          version: '2.0.0'
+          version: '0.1.0'
         }
         // 删除旧配置
         await browser.storage.sync.remove('oldTranslationConfig')

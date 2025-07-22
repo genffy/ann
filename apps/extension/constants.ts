@@ -2,7 +2,7 @@ export const ANN_SELECTION_KEY = 'capture-selection'
 // 应用配置常量
 export const APP_CONFIG = {
     name: 'ANN - Advanced Text Toolkit',
-    version: '2.0.0',
+    version: '0.1.0',
     description: 'Multi-functional text selection toolkit',
 
     // 功能开关

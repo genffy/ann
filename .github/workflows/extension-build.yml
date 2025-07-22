@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build-extension:
@@ -25,8 +29,62 @@ jobs:
       - name: Build extension
         run: yarn run ext:build
 
-      - name: Upload extension artifact
+      - name: Zip extension for Chrome
+        run: |
+          cd apps/extension
+          yarn zip
+        
+      - name: Zip extension for Firefox
+        run: |
+          cd apps/extension
+          yarn zip:firefox
+
+      - name: Debug - List everything to find files
+        run: |
+          echo "=== Current working directory ==="
+          pwd
+          echo "=== Root directory contents ==="
+          ls -la
+          echo "=== apps/extension contents ==="
+          ls -la apps/extension/
+          echo "=== apps/extension/.output contents ==="
+          ls -la apps/extension/.output/ || echo "No .output in apps/extension"
+          echo "=== Looking for .output anywhere ==="
+          find . -name ".output" -type d
+          echo "=== Looking for *.zip files anywhere ==="
+          find . -name "*.zip" -type f
+
+      - name: Upload Chrome extension artifact
         uses: actions/upload-artifact@v4
         with:
-          name: extension-output
-          path: apps/extension/.output/
+          name: chrome-extension
+          path: |
+            ./apps/extension/.output/annhubextension-*-chrome.zip
+          retention-days: 30
+          include-hidden-files: true
+
+      - name: Upload Firefox extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-extension
+          path: |
+            ./apps/extension/.output/annhubextension-*-firefox.zip
+          retention-days: 30
+          include-hidden-files: true
+
+      - name: Upload Firefox sources artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-sources
+          path: |
+            ./apps/extension/.output/annhubextension-*-sources.zip
+          retention-days: 30
+          include-hidden-files: true
+
+      - name: Upload all extension outputs (backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-outputs
+          path: ./apps/extension/.output/
+          retention-days: 30
+          include-hidden-files: true
