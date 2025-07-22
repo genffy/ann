@@ -43,19 +43,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chrome-extension
-          path: apps/extension/.output/*-chrome.zip
+          path: apps/extension/.output/*-*-chrome.zip
           retention-days: 30
 
       - name: Upload Firefox extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
-          path: apps/extension/.output/*-firefox.zip
-          retention-days: 30
-
-      - name: Upload all extension outputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: extension-outputs
-          path: apps/extension/.output/
+          path: apps/extension/.output/*-*-firefox.zip
           retention-days: 30
