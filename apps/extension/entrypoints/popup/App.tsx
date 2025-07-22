@@ -1,30 +1,61 @@
 import { useState } from 'react'
-import reactLogo from '@/assets/react.svg'
-import wxtLogo from '/wxt.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeItem, setActiveItem] = useState<string | null>(null)
+
+  const handleSettingsClick = () => {
+    // Open options page in a new tab
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('options.html')
+    }).finally(() => {
+      window.close()
+    })
+  }
+
+  const menuItems = [
+    {
+      id: 'settings',
+      label: '设置 Settings',
+      icon: '⚙️',
+      description: '配置翻译插件设置',
+      onClick: handleSettingsClick
+    }
+  ]
 
   return (
-    <>
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src={wxtLogo} className="logo" alt="WXT logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>WXT + React</h1>
-      <div className="card">
-        <button onClick={() => setCount(count => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the WXT and React logos to learn more</p>
-    </>
+    <div className="popup-container">
+      <header className="popup-header">
+        <h1>文本翻译</h1>
+        <p>Text Translation</p>
+      </header>
+
+      <nav className="popup-nav">
+        {menuItems.map((item) => (
+          <button
+            key={item.id}
+            className={`nav-item ${activeItem === item.id ? 'active' : ''}`}
+            onClick={() => {
+              setActiveItem(item.id)
+              item.onClick()
+            }}
+            onMouseEnter={() => setActiveItem(item.id)}
+            onMouseLeave={() => setActiveItem(null)}
+          >
+            <div className="nav-item-icon">{item.icon}</div>
+            <div className="nav-item-content">
+              <div className="nav-item-label">{item.label}</div>
+              <div className="nav-item-description">{item.description}</div>
+            </div>
+            <div className="nav-item-arrow">→</div>
+          </button>
+        ))}
+      </nav>
+
+      <footer className="popup-footer">
+        <p>点击选中文本即可翻译</p>
+      </footer>
+    </div>
   )
 }
 
