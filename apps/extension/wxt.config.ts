@@ -8,7 +8,7 @@ export default defineConfig({
   manifest: {
     name: 'ANN - Advanced Text Toolkit',
     description: 'Multi-functional text selection toolkit with translation, notes, and sharing capabilities',
-    version: '2.0.0',
+    version: '0.1.0',
     permissions: [
       'storage',
       'activeTab',

@@ -61,6 +61,7 @@ jobs:
           path: |
             ./apps/extension/.output/annhubextension-*-chrome.zip
           retention-days: 30
+          include-hidden-files: true
 
       - name: Upload Firefox extension artifact
         uses: actions/upload-artifact@v4
@@ -69,6 +70,7 @@ jobs:
           path: |
             ./apps/extension/.output/annhubextension-*-firefox.zip
           retention-days: 30
+          include-hidden-files: true
 
       - name: Upload Firefox sources artifact
         uses: actions/upload-artifact@v4
@@ -77,6 +79,7 @@ jobs:
           path: |
             ./apps/extension/.output/annhubextension-*-sources.zip
           retention-days: 30
+          include-hidden-files: true
 
       - name: Upload all extension outputs (backup)
         uses: actions/upload-artifact@v4
@@ -84,3 +87,4 @@ jobs:
           name: extension-outputs
           path: ./apps/extension/.output/
           retention-days: 30
+          include-hidden-files: true

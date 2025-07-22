@@ -45,7 +45,7 @@ export class ServiceContext {
             error: null,
             initStartTime: null,
             initEndTime: null,
-            version: '2.0.0', // 从 manifest.json 读取
+            version: '0.1.0', // 从 manifest.json 读取
             startupTime: Date.now(),
             services: {
                 config: false,
