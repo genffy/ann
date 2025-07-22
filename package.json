@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "packageManager": "yarn@4.2.2",
+  "type": "module",
   "volta": {
     "node": "18.17.0",
     "yarn": "4.2.2"
