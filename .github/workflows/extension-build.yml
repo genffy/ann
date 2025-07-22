@@ -10,81 +10,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-extension:
+  build:
+    uses: ./.github/workflows/build-extension.yml
+    
+  debug-artifacts:
+    needs: build
     runs-on: ubuntu-latest
-
+    if: github.event_name != 'pull_request'
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          node-version: 18.17.0
-          cache: 'yarn'
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: ./downloaded-artifacts
 
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Build extension
-        run: yarn run ext:build
-
-      - name: Zip extension for Chrome
+      - name: Debug - List downloaded files
         run: |
-          cd apps/extension
-          yarn zip
-        
-      - name: Zip extension for Firefox
-        run: |
-          cd apps/extension
-          yarn zip:firefox
-
-      - name: Debug - List everything to find files
-        run: |
-          echo "=== Current working directory ==="
-          pwd
-          echo "=== Root directory contents ==="
-          ls -la
-          echo "=== apps/extension contents ==="
-          ls -la apps/extension/
-          echo "=== apps/extension/.output contents ==="
-          ls -la apps/extension/.output/ || echo "No .output in apps/extension"
-          echo "=== Looking for .output anywhere ==="
-          find . -name ".output" -type d
-          echo "=== Looking for *.zip files anywhere ==="
-          find . -name "*.zip" -type f
-
-      - name: Upload Chrome extension artifact
+          echo "=== Downloaded artifacts ==="
+          ls -la ./downloaded-artifacts/
+          echo "=== Looking for zip files ==="
+          find ./downloaded-artifacts -name "*.zip" -type f
+          
+      - name: Upload individual extension artifacts
         uses: actions/upload-artifact@v4
         with:
           name: chrome-extension
-          path: |
-            ./apps/extension/.output/annhubextension-*-chrome.zip
+          path: ./downloaded-artifacts/*chrome.zip
           retention-days: 30
-          include-hidden-files: true
 
-      - name: Upload Firefox extension artifact
+      - name: Upload Firefox extension artifact  
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
-          path: |
-            ./apps/extension/.output/annhubextension-*-firefox.zip
+          path: ./downloaded-artifacts/*firefox.zip
           retention-days: 30
-          include-hidden-files: true
 
       - name: Upload Firefox sources artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firefox-sources
-          path: |
-            ./apps/extension/.output/annhubextension-*-sources.zip
+          name: firefox-sources  
+          path: ./downloaded-artifacts/*sources.zip
           retention-days: 30
-          include-hidden-files: true
-
-      - name: Upload all extension outputs (backup)
-        uses: actions/upload-artifact@v4
-        with:
-          name: extension-outputs
-          path: ./apps/extension/.output/
-          retention-days: 30
-          include-hidden-files: true
