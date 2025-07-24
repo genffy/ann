@@ -3,7 +3,6 @@ import { ConfigService } from "."
 import { GetConfigMessage, ResponseMessage, SetConfigMessage } from "../../../types/messages"
 
 export const messageHandlers = {
-    // 配置相关
     GET_CONFIG: async (message: GetConfigMessage): Promise<ResponseMessage> => {
         try {
             const configService = ConfigService.getInstance()

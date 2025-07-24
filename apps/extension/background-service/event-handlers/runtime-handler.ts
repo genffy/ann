@@ -1,10 +1,7 @@
 import { Logger } from '../../utils/logger'
 import { ServiceContext } from '../service-context'
 
-/**
- * 运行时事件处理器
- * 处理 PING、启动、侧边栏等运行时事件
- */
+
 export class RuntimeHandler {
   private serviceContext: ServiceContext
   private pingListener?: (message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) => boolean
@@ -15,13 +12,10 @@ export class RuntimeHandler {
     this.serviceContext = ServiceContext.getInstance()
   }
 
-  /**
-   * 注册运行时事件监听器
-   */
+
   registerListeners(): void {
     Logger.info('[RuntimeHandler] Registering runtime listeners...')
 
-    // PING 消息处理器
     this.pingListener = (message, sender, sendResponse) => {
       if (message.type === 'PING') {
         Logger.info('[RuntimeHandler] Received PING, service worker is active')
@@ -31,23 +25,22 @@ export class RuntimeHandler {
         })
         return true
       }
-      // 不处理其他消息，让其他处理器处理
+
       return false
     }
     browser.runtime.onMessage.addListener(this.pingListener)
 
-    // 扩展图标点击处理器
+
     this.actionClickListener = async (tab) => {
       try {
         Logger.info('[RuntimeHandler] Extension icon clicked, opening sidebar')
-
         if (tab.id) {
-          // 支持 sidePanel API 的浏览器
+
           if (browser.sidePanel && browser.sidePanel.open) {
             await browser.sidePanel.open({ tabId: tab.id })
             Logger.info('[RuntimeHandler] Sidebar opened successfully')
           } else {
-            // 回退到弹窗模式
+
             Logger.warn('[RuntimeHandler] SidePanel API not supported, falling back to popup')
             throw new Error('SidePanel not supported')
           }
@@ -55,7 +48,7 @@ export class RuntimeHandler {
       } catch (error) {
         Logger.error('[RuntimeHandler] Failed to open sidebar:', error)
 
-        // 如果侧边栏不支持，回退到弹窗
+
         try {
           await browser.action.setPopup({ popup: 'popup/index.html' })
           Logger.info('[RuntimeHandler] Fallback to popup mode')
@@ -64,9 +57,10 @@ export class RuntimeHandler {
         }
       }
     }
+    // if configured default_popup, this will be ignored
     browser.action.onClicked.addListener(this.actionClickListener)
 
-    // 浏览器启动处理器
+
     this.startupListener = async () => {
       try {
         Logger.info('[RuntimeHandler] Browser startup detected, checking services...')
@@ -90,9 +84,7 @@ export class RuntimeHandler {
     Logger.info('[RuntimeHandler] Runtime listeners registered successfully')
   }
 
-  /**
-   * 移除运行时事件监听器
-   */
+
   removeListeners(): void {
     Logger.info('[RuntimeHandler] Removing runtime listeners...')
 

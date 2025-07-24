@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { HighlightRecord, HighlightQuery } from '../../types/highlight'
-import MessageUtils from '../../utils/message'
-import './highlight-list.css'
+import { HighlightRecord, HighlightQuery } from '../../../types/highlight'
+import MessageUtils from '../../../utils/message'
+import './index.style.css'
 
 interface HighlightListProps {
     className?: string
@@ -41,32 +41,32 @@ export default function HighlightList({
         totalPages: 0
     })
 
-    // 加载高亮数据
+
     const loadHighlights = async () => {
         setLoading(true)
         setError(null)
 
         try {
-            // 构建查询参数
+
             const query: HighlightQuery = {
                 status: statusFilter === 'all' ? undefined : statusFilter,
                 limit: pagination.pageSize,
                 offset: (pagination.currentPage - 1) * pagination.pageSize
             }
 
-            // 通过background script获取高亮数据
+
             const response = await MessageUtils.sendMessage({
                 type: 'GET_HIGHLIGHTS',
                 query: query
             })
 
             if (!response.success) {
-                throw new Error(response.error || '获取高亮数据失败')
+                throw new Error(response.error || i18n.t("network.error"))
             }
 
             const allHighlights = response.data as HighlightRecord[]
 
-            // 应用搜索过滤
+
             let filteredHighlights = allHighlights
             if (searchQuery.trim()) {
                 const searchTerm = searchQuery.toLowerCase()
@@ -77,7 +77,7 @@ export default function HighlightList({
                 )
             }
 
-            // 更新分页信息
+
             const total = filteredHighlights.length
             const totalPages = Math.ceil(total / pagination.pageSize)
             setPagination(prev => ({
@@ -86,24 +86,24 @@ export default function HighlightList({
                 totalPages
             }))
 
-            // 获取当前页数据
+
             const offset = (pagination.currentPage - 1) * pagination.pageSize
             const currentPageHighlights = filteredHighlights.slice(offset, offset + pagination.pageSize)
 
             setHighlights(currentPageHighlights)
         } catch (err) {
-            setError(err instanceof Error ? err.message : '加载高亮数据失败')
+            setError(err instanceof Error ? err.message : i18n.t("network.error"))
         } finally {
             setLoading(false)
         }
     }
 
-    // 处理高亮点击
+
     const handleHighlightClick = async (highlight: HighlightRecord) => {
         if (onHighlightClick) {
             onHighlightClick(highlight)
         } else {
-            // 默认行为：通过background script定位高亮
+
             try {
                 const response = await MessageUtils.sendMessage({
                     type: 'LOCATE_HIGHLIGHT',
@@ -121,7 +121,7 @@ export default function HighlightList({
         }
     }
 
-    // 格式化时间
+
     const formatTime = (timestamp: number) => {
         return new Date(timestamp).toLocaleString('zh-CN', {
             year: 'numeric',
@@ -132,13 +132,13 @@ export default function HighlightList({
         })
     }
 
-    // 截断文本
+
     const truncateText = (text: string, maxLength: number = 200) => {
         if (text.length <= maxLength) return text
         return text.substring(0, maxLength) + '...'
     }
 
-    // 页面大小变化处理
+
     const handlePageSizeChange = (newPageSize: number) => {
         setPagination(prev => ({
             ...prev,
@@ -147,7 +147,7 @@ export default function HighlightList({
         }))
     }
 
-    // 页码变化处理
+
     const handlePageChange = (newPage: number) => {
         setPagination(prev => ({
             ...prev,
@@ -155,7 +155,7 @@ export default function HighlightList({
         }))
     }
 
-    // 搜索处理
+
     const handleSearch = (query: string) => {
         setSearchQuery(query)
         setPagination(prev => ({
@@ -164,7 +164,7 @@ export default function HighlightList({
         }))
     }
 
-    // 状态过滤处理
+
     const handleStatusFilter = (status: typeof statusFilter) => {
         setStatusFilter(status)
         setPagination(prev => ({
@@ -173,7 +173,7 @@ export default function HighlightList({
         }))
     }
 
-    // 初始化和依赖更新
+
     useEffect(() => {
         loadHighlights()
     }, [pagination.currentPage, pagination.pageSize, statusFilter, searchQuery])
@@ -183,15 +183,15 @@ export default function HighlightList({
             {showHeader && (
                 <div className="highlight-list-header">
                     <div className="header-title">
-                        <h3>高亮列表</h3>
-                        <span className="total-count">共 {pagination.total} 条</span>
+                        <h3>{i18n.t('highlights')}</h3>
+                        <span className="total-count">{i18n.t('pagination.total', [pagination.total])}</span>
                     </div>
 
                     <div className="header-controls">
                         <div className="search-box">
                             <input
                                 type="text"
-                                placeholder="搜索高亮内容..."
+                                placeholder={`${i18n.t('search')}...`}
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
                                 className="search-input"
@@ -204,10 +204,10 @@ export default function HighlightList({
                                 onChange={(e) => handleStatusFilter(e.target.value as typeof statusFilter)}
                                 className="filter-select"
                             >
-                                <option value="all">全部状态</option>
-                                <option value="active">活跃</option>
-                                <option value="archived">已归档</option>
-                                <option value="deleted">已删除</option>
+                                <option value="all">{i18n.t('highlight.status.all')}</option>
+                                <option value="active">{i18n.t('highlight.status.active')}</option>
+                                <option value="archived">{i18n.t('highlight.status.archived')}</option>
+                                <option value="deleted">{i18n.t('highlight.status.deleted')}</option>
                             </select>
                         </div>
                     </div>
@@ -218,7 +218,7 @@ export default function HighlightList({
                 {loading && (
                     <div className="loading-state">
                         <div className="loading-spinner"></div>
-                        <span>加载中...</span>
+                        <span>{i18n.t('network.loading')}</span>
                     </div>
                 )}
 
@@ -227,7 +227,7 @@ export default function HighlightList({
                         <span className="error-icon">⚠️</span>
                         <span>{error}</span>
                         <button onClick={loadHighlights} className="retry-button">
-                            重试
+                            {i18n.t('network.retry')}
                         </button>
                     </div>
                 )}
@@ -235,9 +235,9 @@ export default function HighlightList({
                 {!loading && !error && highlights.length === 0 && (
                     <div className="empty-state">
                         <span className="empty-icon">📝</span>
-                        <p>暂无高亮数据</p>
+                        <p>{i18n.t('noData')}</p>
                         <p className="empty-description">
-                            {searchQuery ? '没有找到匹配的高亮内容' : '开始选择文本并高亮吧！'}
+                            {searchQuery ? i18n.t('noData') : i18n.t('noData')}
                         </p>
                     </div>
                 )}
@@ -258,8 +258,8 @@ export default function HighlightList({
                                     </div>
                                     <div className="highlight-status">
                                         <span className={`status-badge status-${highlight.status}`}>
-                                            {highlight.status === 'active' ? '活跃' :
-                                                highlight.status === 'archived' ? '归档' : '删除'}
+                                            {highlight.status === 'active' ? i18n.t('highlight.status.active') :
+                                                highlight.status === 'archived' ? i18n.t('highlight.status.archived') : i18n.t('highlight.status.deleted')}
                                         </span>
                                     </div>
                                 </div>
@@ -269,7 +269,7 @@ export default function HighlightList({
                                     <p className="highlight-text">{truncateText(highlight.originalText)}</p>
                                     {highlight.context.before && (
                                         <p className="highlight-context">
-                                            <span className="context-label">上下文：</span>
+                                            <span className="context-label">{i18n.t('highlight.context')}:</span>
                                             <span className="context-text">
                                                 ...{highlight.context.before}
                                                 <mark style={{ backgroundColor: highlight.color }}>
@@ -286,7 +286,7 @@ export default function HighlightList({
                                 <div className="highlight-actions">
                                     <button className="action-button primary">
                                         <span className="action-icon">🔗</span>
-                                        <span>查看详情</span>
+                                        <span>{i18n.t('highlight.viewDetail')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -298,7 +298,7 @@ export default function HighlightList({
             {showPagination && pagination.totalPages > 1 && (
                 <div className="highlight-pagination">
                     <div className="pagination-info">
-                        <span>每页显示</span>
+                        <span>{i18n.t('pagination.pageSize')}</span>
                         <select
                             value={pagination.pageSize}
                             onChange={(e) => handlePageSizeChange(Number(e.target.value))}
@@ -308,7 +308,7 @@ export default function HighlightList({
                                 <option key={size} value={size}>{size}</option>
                             ))}
                         </select>
-                        <span>条，共 {pagination.total} 条</span>
+                        <span>{i18n.t('pagination.total', [pagination.total])}</span>
                     </div>
 
                     <div className="pagination-controls">
@@ -317,7 +317,7 @@ export default function HighlightList({
                             disabled={pagination.currentPage === 1}
                             className="pagination-button"
                         >
-                            上一页
+                            {i18n.t('pagination.previous')}
                         </button>
 
                         <div className="pagination-numbers">
@@ -340,7 +340,7 @@ export default function HighlightList({
                             disabled={pagination.currentPage === pagination.totalPages}
                             className="pagination-button"
                         >
-                            下一页
+                            {i18n.t('pagination.next')}
                         </button>
                     </div>
                 </div>

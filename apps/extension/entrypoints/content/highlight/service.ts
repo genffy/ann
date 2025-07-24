@@ -5,10 +5,7 @@ import { HighlightStatsResponse } from '../../../types/messages'
 import { generateId, hash } from '../../../utils/helpers'
 import { MixedSelectionContent } from '../../../types/dom'
 
-/**
- * 高亮服务
- * 整合存储和DOM管理功能，提供完整的高亮功能
- */
+
 export class HighlightService {
     private static instance: HighlightService | null = null
     private domManager: HighlightDOMManager
@@ -26,8 +23,8 @@ export class HighlightService {
         return HighlightService.instance
     }
 
-     // 规范化文本（用于匹配）
-     private _normalize(text: string): string  {
+
+    private _normalize(text: string): string {
         return text
             .toLowerCase()
             .replace(/\s+/g, ' ')
@@ -35,17 +32,15 @@ export class HighlightService {
             .trim()
     }
 
-    /**
-     * 初始化服务
-     */
+
     async initialize(): Promise<void> {
         if (this.isInitialized) return
 
         try {
-            // 初始化存储
+
             // await this.storage.initialize()
 
-            // 恢复页面高亮
+
             await this.restorePageHighlights()
 
             this.isInitialized = true
@@ -56,18 +51,16 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 初始化事件监听器
-     */
+
     private initializeEventListeners(): void {
-        // 监听颜色更新事件
+
         window.addEventListener('ann-highlight-color-updated', async (event: Event) => {
             const customEvent = event as CustomEvent
             const { highlightId, newColor } = customEvent.detail
             await this.updateHighlightColor(highlightId, newColor)
         })
 
-        // 监听删除事件
+
         window.addEventListener('ann-highlight-deleted', async (event: Event) => {
             const customEvent = event as CustomEvent
             const { highlightId } = customEvent.detail
@@ -75,9 +68,7 @@ export class HighlightService {
         })
     }
 
-    /**
-     * 创建高亮
-     */
+
     async createHighlight(range: Range, color: string = '#ffeb3b'): Promise<HighlightResult> {
         try {
             const text = range.toString().trim()
@@ -113,7 +104,7 @@ export class HighlightService {
                 }
             }
 
-            // 保存到存储
+
             const saveResult = await MessageUtils.sendMessage({
                 type: 'SAVE_HIGHLIGHT',
                 data: highlight
@@ -121,10 +112,10 @@ export class HighlightService {
             if (!saveResult.success) {
                 return saveResult
             }
-            // 创建DOM高亮
+
             const elements = this.domManager.createHighlight(range, color, saveResult.data.id)
             if (elements.length === 0) {
-                // 如果DOM创建失败，删除存储的记录
+
                 // await this.storage.deleteHighlight(saveResult.data.id)
                 await MessageUtils.sendMessage({
                     type: 'DELETE_HIGHLIGHT',
@@ -144,12 +135,10 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 更新高亮颜色
-     */
+
     async updateHighlightColor(highlightId: string, newColor: string): Promise<HighlightResult> {
         try {
-            // 更新存储
+
             const updateResult = await MessageUtils.sendMessage({
                 type: 'UPDATE_HIGHLIGHT',
                 data: {
@@ -161,7 +150,7 @@ export class HighlightService {
                 return updateResult
             }
 
-            // 更新DOM
+
             this.domManager.updateHighlightColor(highlightId, newColor)
 
             console.log(`[HighlightService] Updated highlight color: ${highlightId} -> ${newColor}`)
@@ -173,15 +162,13 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 删除高亮
-     */
+
     async deleteHighlight(highlightId: string): Promise<HighlightResult> {
         try {
-            // 从DOM移除
+
             this.domManager.removeHighlight(highlightId)
 
-            // 从存储删除
+
             const deleteResult = await MessageUtils.sendMessage({
                 type: 'DELETE_HIGHLIGHT',
                 data: {
@@ -198,9 +185,7 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 恢复页面高亮
-     */
+
     async restorePageHighlights(): Promise<void> {
         try {
             const highlights = await MessageUtils.sendMessage<HighlightRecord[]>({
@@ -224,19 +209,17 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 恢复单个高亮
-     */
+
     private async restoreHighlight(highlight: HighlightRecord): Promise<void> {
         try {
-            // 使用文本匹配算法查找对应的文本
+
             const range = await this.findTextRange(highlight)
             if (!range) {
                 console.warn(`[HighlightService] Could not find text for highlight: ${highlight.id}`)
                 return
             }
 
-            // 创建DOM高亮
+
             this.domManager.createHighlight(range, highlight.color, highlight.id)
             console.log(`[HighlightService] Restored highlight: ${highlight.id}`)
 
@@ -245,26 +228,24 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 查找文本范围
-     */
+
     private async findTextRange(highlight: HighlightRecord): Promise<Range | null> {
         const { originalText, context, selector } = highlight
 
         try {
-            // 首先尝试通过选择器定位
+
             let targetElements: Element[] = []
             if (selector) {
                 const elements = document.querySelectorAll(selector)
                 targetElements = Array.from(elements)
             }
 
-            // 如果没有找到元素，则搜索整个文档
+
             if (targetElements.length === 0) {
                 targetElements = [document.body]
             }
 
-            // 在目标元素中搜索文本
+
             for (const element of targetElements) {
                 const range = this.findTextInElement(element, originalText, context)
                 if (range) {
@@ -280,9 +261,7 @@ export class HighlightService {
         }
     }
 
-    /**
-     * 在元素中查找文本
-     */
+
     private findTextInElement(element: Element, targetText: string, context: { before: string; after: string }): Range | null {
         const walker = document.createTreeWalker(
             element,
@@ -296,30 +275,28 @@ export class HighlightService {
             textNodes.push(node)
         }
 
-        // 构建完整文本
+
         const fullText = textNodes.map(node => node.textContent || '').join('')
 
-        // 查找目标文本
+
         const targetIndex = this.findBestMatch(fullText, targetText, context)
         if (targetIndex === -1) {
             return null
         }
 
-        // 创建范围
+
         return this.createRangeFromIndex(textNodes, targetIndex, targetText.length)
     }
 
-    /**
-     * 查找最佳匹配
-     */
+
     private findBestMatch(fullText: string, targetText: string, context: { before: string; after: string }): number {
-        // 首先尝试精确匹配
+
         let index = fullText.indexOf(targetText)
         if (index !== -1) {
             return index
         }
 
-        // 尝试模糊匹配
+
         const normalizedTarget = this._normalize(targetText)
         const normalizedFull = this._normalize(fullText)
 
@@ -328,7 +305,7 @@ export class HighlightService {
             return index
         }
 
-        // 使用上下文辅助匹配
+
         if (context.before || context.after) {
             const contextPattern = `${context.before}.*?${targetText}.*?${context.after}`
             const regex = new RegExp(contextPattern, 'i')
@@ -341,9 +318,7 @@ export class HighlightService {
         return -1
     }
 
-    /**
-     * 从索引创建范围
-     */
+
     private createRangeFromIndex(textNodes: Text[], startIndex: number, length: number): Range | null {
         let currentIndex = 0
         let startNode: Text | null = null
@@ -351,7 +326,7 @@ export class HighlightService {
         let endNode: Text | null = null
         let endOffset = 0
 
-        // 查找起始位置
+
         for (const node of textNodes) {
             const nodeLength = node.textContent?.length || 0
             if (currentIndex + nodeLength > startIndex) {
@@ -364,7 +339,7 @@ export class HighlightService {
 
         if (!startNode) return null
 
-        // 查找结束位置
+
         const endIndex = startIndex + length
         currentIndex = 0
         for (const node of textNodes) {
@@ -379,7 +354,7 @@ export class HighlightService {
 
         if (!endNode) return null
 
-        // 创建范围
+
         const range = document.createRange()
         range.setStart(startNode, startOffset)
         range.setEnd(endNode, endOffset)
@@ -387,9 +362,7 @@ export class HighlightService {
         return range
     }
 
-    /**
-     * 获取当前页面高亮
-     */
+
     async getCurrentPageHighlights(): Promise<HighlightRecord[]> {
         const response = await MessageUtils.sendMessage<HighlightRecord[]>({
             type: 'GET_CURRENT_PAGE_HIGHLIGHTS',
@@ -402,14 +375,12 @@ export class HighlightService {
         return response.data || []
     }
 
-    /**
-     * 清除所有高亮
-     */
+
     async clearAllHighlights(): Promise<void> {
-        // 清除DOM
+
         this.domManager.clearAllHighlights()
 
-        // 清除存储
+
         await MessageUtils.sendMessage({
             type: 'CLEAR_ALL_HIGHLIGHTS',
         })
@@ -417,9 +388,7 @@ export class HighlightService {
         console.log('[HighlightService] All highlights cleared')
     }
 
-    /**
-     * 获取高亮统计
-     */
+
     async getHighlightStats(): Promise<{
         storage: { total: number; active: number; archived: number; deleted: number }
         dom: { total: number; colors: Record<string, number> }
@@ -438,7 +407,7 @@ export class HighlightService {
             dom: domStats
         }
     }
-     // 获取选择内容的完整信息
+
     getSelectionInfo(selection: Selection): {
         text: string
         hasText: boolean

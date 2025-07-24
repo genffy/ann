@@ -18,7 +18,6 @@ body {
     overflow-y: auto;
 }
 
-/* Sidebar特定样式 */
 .sidebar-container {
     display: flex;
     flex-direction: column;
@@ -223,7 +222,6 @@ body {
     border-color: #afb8c1;
 }
 
-/* 侧边栏高亮列表样式 */
 .sidebar-highlight-list {
     height: 100%;
     border-radius: 0;
@@ -306,7 +304,6 @@ body {
     height: 24px;
 }
 
-/* 侧边栏节 */
 .sidebar-section {
     padding: 16px;
 }

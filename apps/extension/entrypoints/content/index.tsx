@@ -5,7 +5,7 @@ import Highlight from './Highlight';
 import MessageUtils from '../../utils/message';
 import { HighlightRecord } from '../../types/highlight';
 import { HighlightService } from './highlight/service';
-import './style.css'
+import './content.css'
 
 interface ToolbarPosition {
   x: number;
@@ -118,32 +118,26 @@ const getArrowStyle = (placement: TooltipPlacement) => {
   return arrowStyle;
 };
 
-/**
- * 检查页面是否准备就绪
- * @returns 是否准备就绪
- */
+
 function isPageReady(): boolean {
   return document.readyState === 'complete' || document.readyState === 'interactive'
 }
 
-/**
- * 等待页面准备就绪
- * @returns Promise
- */
+
 function waitForPageReady(): Promise<void> {
-    return new Promise((resolve) => {
+  return new Promise((resolve) => {
+    if (isPageReady()) {
+      resolve()
+    } else {
+      const handler = () => {
         if (isPageReady()) {
-            resolve()
-        } else {
-            const handler = () => {
-                if (isPageReady()) {
-                    document.removeEventListener('readystatechange', handler)
-                    resolve()
-                }
-            }
-            document.addEventListener('readystatechange', handler)
+          document.removeEventListener('readystatechange', handler)
+          resolve()
         }
-    })
+      }
+      document.addEventListener('readystatechange', handler)
+    }
+  })
 }
 function Selection() {
   const [visible, setVisible] = useState(false);
@@ -554,22 +548,22 @@ export default defineContentScript({
     })
     ui.mount()
 
-    // 监听来自popup/sidepanel的消息
+
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'LOCATE_HIGHLIGHT') {
         locateHighlight(message.data.highlightId)
           .then(result => sendResponse({ success: true, result }))
           .catch(error => sendResponse({ success: false, error: error.message }))
-        return true // 保持消息通道开放以进行异步响应
+        return true
       }
     })
   }
 })
 
-// 定位高亮的函数
+
 async function locateHighlight(highlightId: string) {
   try {
-    // 通过background script获取高亮数据
+
     const response = await MessageUtils.sendMessage({
       type: 'GET_HIGHLIGHTS',
       query: {
@@ -587,29 +581,29 @@ async function locateHighlight(highlightId: string) {
       throw new Error('Highlight not found')
     }
 
-    // 如果不是当前页面的高亮，不处理
+
     if (highlight.url !== window.location.href) {
       throw new Error('Highlight is not on current page')
     }
 
-    // 尝试通过选择器定位元素
+
     const element = document.querySelector(highlight.selector) as HTMLElement
     if (element) {
-      // 滚动到元素位置
+
       element.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'center'
       })
 
-      // 添加临时高亮效果
+
       const originalStyle = element.style.cssText
       element.style.cssText += `
         background-color: ${highlight.color} !important;
         animation: highlight-pulse 2s ease-in-out;
       `
 
-      // 添加脉冲动画样式
+
       if (!document.getElementById('highlight-pulse-style')) {
         const style = document.createElement('style')
         style.id = 'highlight-pulse-style'
@@ -623,7 +617,6 @@ async function locateHighlight(highlightId: string) {
         document.head.appendChild(style)
       }
 
-      // 2秒后恢复原始样式
       setTimeout(() => {
         element.style.cssText = originalStyle
       }, 2000)

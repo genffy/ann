@@ -1,4 +1,4 @@
-// 高亮记录类型定义
+
 export interface HighlightRecord {
     id: string
     url: string
@@ -27,14 +27,14 @@ export interface HighlightRecord {
     }
 }
 
-// 高亮颜色配置
+
 export interface HighlightColor {
     name: string
     value: string
     textColor: string
 }
 
-// 高亮配置
+
 export interface HighlightConfig {
     enabled: boolean
     colors: HighlightColor[]
@@ -43,14 +43,14 @@ export interface HighlightConfig {
     autoSync: boolean
 }
 
-// 高亮操作结果
+
 export interface HighlightResult {
     success: boolean
     data?: HighlightRecord
     error?: string
 }
 
-// 高亮查询参数
+
 export interface HighlightQuery {
     url?: string
     domain?: string

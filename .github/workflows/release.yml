@@ -5,7 +5,7 @@ on:
     types: [published]
   push:
     tags:
-      - 'v*' # 例如：v2.0.0
+      - 'v*' # eg：v2.0.0
 
 jobs:
   build:
