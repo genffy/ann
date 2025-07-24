@@ -1,7 +1,6 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb'
 import type { HighlightRecord, HighlightQuery, HighlightResult } from '../../../types/highlight'
 
-// 数据库模式定义
 interface HighlightDB extends DBSchema {
     highlights: {
         key: string
@@ -15,10 +14,6 @@ interface HighlightDB extends DBSchema {
     }
 }
 
-/**
- * 高亮存储服务
- * 负责高亮数据的持久化存储和检索
- */
 export class HighlightStorage {
     private static instance: HighlightStorage | null = null
     private db: IDBPDatabase<HighlightDB> | null = null
@@ -34,21 +29,16 @@ export class HighlightStorage {
         return HighlightStorage.instance
     }
 
-    /**
-     * 初始化数据库
-     */
     async initialize(): Promise<void> {
         if (this.db) return
 
         try {
             this.db = await openDB<HighlightDB>(this.DB_NAME, this.DB_VERSION, {
                 upgrade(db) {
-                    // 创建高亮表
                     const highlightStore = db.createObjectStore('highlights', {
                         keyPath: 'id'
                     })
 
-                    // 创建索引
                     highlightStore.createIndex('by-url', 'url')
                     highlightStore.createIndex('by-domain', 'domain')
                     highlightStore.createIndex('by-status', 'status')
@@ -62,9 +52,7 @@ export class HighlightStorage {
             throw error
         }
     }
-    /**
-     * 保存高亮
-     */
+
     async saveHighlight(
         highlight: HighlightRecord
     ): Promise<HighlightResult> {
@@ -84,9 +72,6 @@ export class HighlightStorage {
         }
     }
 
-    /**
-     * 获取高亮列表
-     */
     async getHighlights(query: HighlightQuery = {}): Promise<HighlightRecord[]> {
         if (!this.db) {
             await this.initialize()
@@ -106,15 +91,12 @@ export class HighlightStorage {
                 highlights = await store.getAll()
             }
             console.log('getHighlights highlights', highlights)
-            // 过滤状态
             if (query.status) {
                 highlights = highlights.filter(h => h.status === query.status)
             }
 
-            // 排序（按时间戳降序）
             highlights.sort((a, b) => b.timestamp - a.timestamp)
 
-            // 分页
             if (query.limit) {
                 const offset = query.offset || 0
                 highlights = highlights.slice(offset, offset + query.limit)
@@ -128,9 +110,6 @@ export class HighlightStorage {
         }
     }
 
-    /**
-     * 获取当前页面的高亮
-     */
     async getCurrentPageHighlights(url: string): Promise<HighlightRecord[]> {
         return this.getHighlights({
             url: url,
@@ -138,9 +117,6 @@ export class HighlightStorage {
         })
     }
 
-    /**
-     * 更新高亮
-     */
     async updateHighlight(id: string, updates: Partial<HighlightRecord>): Promise<HighlightResult> {
         if (!this.db) {
             await this.initialize()
@@ -173,9 +149,6 @@ export class HighlightStorage {
         }
     }
 
-    /**
-     * 删除高亮
-     */
     async deleteHighlight(id: string): Promise<HighlightResult> {
         if (!this.db) {
             await this.initialize()
@@ -202,9 +175,6 @@ export class HighlightStorage {
         }
     }
 
-    /**
-     * 清空所有高亮
-     */
     async clearAllHighlights(): Promise<void> {
         if (!this.db) {
             await this.initialize()
@@ -223,9 +193,6 @@ export class HighlightStorage {
         }
     }
 
-    /**
-     * 获取统计信息
-     */
     async getStats(): Promise<{
         total: number
         active: number

@@ -1,18 +1,11 @@
 import { Logger } from '../../utils/logger'
 import { ANN_SELECTION_KEY } from '../../constants'
 
-/**
- * 命令事件处理器
- * 处理快捷键命令事件
- */
 export class CommandHandler {
   private commandListener?: (command: string) => void
 
-  constructor() {}
+  constructor() { }
 
-  /**
-   * 注册命令事件监听器
-   */
   registerListeners(): void {
     Logger.info('[CommandHandler] Registering command listeners...')
 
@@ -34,12 +27,8 @@ export class CommandHandler {
     Logger.info('[CommandHandler] Command listeners registered successfully')
   }
 
-  /**
-   * 处理截图命令
-   */
   private async handleScreenshotCommand(): Promise<void> {
     try {
-      // 获取当前活动标签页
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
 
       if (!tab?.id) {
@@ -49,7 +38,6 @@ export class CommandHandler {
 
       Logger.info('[CommandHandler] Triggering screenshot for tab:', tab.id)
 
-      // 向内容脚本发送截图命令
       try {
         await browser.tabs.sendMessage(tab.id, {
           type: 'TRIGGER_SCREENSHOT',
@@ -59,12 +47,10 @@ export class CommandHandler {
       } catch (error) {
         Logger.error('[CommandHandler] Failed to send message to content script:', error)
 
-        // 尝试注入内容脚本（如果还未注入）
         try {
           await browser.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => {
-              // 通知页面触发截图
               window.dispatchEvent(new CustomEvent('ann-screenshot-trigger', {
                 detail: { command: 'capture-screenshot' }
               }))
@@ -81,9 +67,6 @@ export class CommandHandler {
     }
   }
 
-  /**
-   * 移除命令事件监听器
-   */
   removeListeners(): void {
     Logger.info('[CommandHandler] Removing command listeners...')
 

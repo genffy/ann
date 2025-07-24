@@ -1,4 +1,4 @@
-// 默认翻译配置
+
 export const defaultTranslationConfig = {
     enableGoogleTranslate: true,
     enableBaiduTranslate: false,
@@ -7,7 +7,7 @@ export const defaultTranslationConfig = {
     targetLanguage: 'zh-CN',
     showTranslationOnHover: true,
     autoDetectLanguage: true,
-    // 域名白名单配置，默认仅在 x.com 下开启
+
     domainWhitelist: {
         enabled: true,
         domains: ['x.com', 'twitter.com']
@@ -34,7 +34,7 @@ export const defaultTranslationConfig = {
     },
 }
 
-// 默认翻译规则
+
 export const defaultTranslationRules = {
     enabled: true,
     skipChinese: false,

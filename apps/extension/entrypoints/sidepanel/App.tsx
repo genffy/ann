@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import HighlightList from '../../components/ui/highlight-list'
+import { i18n } from '#i18n'
 
-type ViewMode = 'highlights' | 'translation' | 'notes'
+type ViewMode = 'highlights' | 'chats'
 
 function App() {
     const [currentView, setCurrentView] = useState<ViewMode>('highlights')
 
     const viewOptions = [
-        { value: 'highlights', label: '高亮列表', icon: '📝' },
-        { value: 'translation', label: '翻译功能', icon: '🌐' },
-        { value: 'notes', label: '笔记管理', icon: '📔' }
+        { value: 'highlights', label: i18n.t("highlight.name"), icon: '📝' },
+        { value: 'chats', label: i18n.t("sidepanel.name"), icon: '💬' },
     ]
 
     const renderContent = () => {
@@ -23,18 +23,11 @@ function App() {
                         initialPageSize={10}
                     />
                 )
-            case 'translation':
+            case 'chats':
                 return (
                     <div className="sidebar-section">
-                        <h3>翻译功能</h3>
-                        <p>翻译功能正在开发中...</p>
-                    </div>
-                )
-            case 'notes':
-                return (
-                    <div className="sidebar-section">
-                        <h3>笔记管理</h3>
-                        <p>笔记管理功能正在开发中...</p>
+                        <h3>{i18n.t("sidepanel.name")}</h3>
+                        <p>{i18n.t("wip", [i18n.t("sidepanel.name")])}</p>
                     </div>
                 )
             default:
@@ -45,7 +38,7 @@ function App() {
     return (
         <div className="sidebar-container">
             <div className="sidebar-header">
-                <h1>🌐 ANN Toolkit</h1>
+                <h1>{i18n.t("sidepanel.title")}</h1>
 
                 <div className="view-selector">
                     <select

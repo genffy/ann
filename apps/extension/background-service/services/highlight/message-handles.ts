@@ -4,7 +4,7 @@ import { HighlightStorage } from "./highlight-storage"
 import { HighlightRecord } from "../../../types/highlight"
 
 export const messageHandlers = {
-    // 高亮相关
+
     GET_HIGHLIGHTS: async (message: GetHighlightsMessage): Promise<ResponseMessage> => {
         try {
             const highlights = await HighlightStorage.getInstance().getHighlights(message.query)
@@ -16,8 +16,8 @@ export const messageHandlers = {
 
     SAVE_HIGHLIGHT: async (message: SaveHighlightMessage): Promise<ResponseMessage> => {
         try {
-            // 这个方法需要在content script中实现，background只是转发
-            // 因为Range对象只能在content script中创建
+
+
             const saveResult = await HighlightStorage.getInstance().saveHighlight(message.data)
             if (!saveResult.success) {
                 return MessageUtils.createResponse(false, undefined, saveResult.error)
@@ -93,14 +93,14 @@ export const messageHandlers = {
 
     LOCATE_HIGHLIGHT: async (message: LocateHighlightMessage): Promise<ResponseMessage> => {
         try {
-            // 获取当前活动标签页
+
             const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
 
             if (!tab?.id) {
                 return MessageUtils.createResponse(false, undefined, 'No active tab found')
             }
 
-            // 首先打开包含高亮的页面
+
             const highlights = await HighlightStorage.getInstance().getHighlights({
                 limit: 1000
             })
@@ -110,11 +110,11 @@ export const messageHandlers = {
                 return MessageUtils.createResponse(false, undefined, 'Highlight not found')
             }
 
-            // 如果当前页面不是高亮所在页面，先打开正确的页面
+
             if (tab.url !== highlight.url) {
                 await browser.tabs.update(tab.id, { url: highlight.url })
 
-                // 等待页面加载完成
+
                 await new Promise<void>((resolve) => {
                     const listener = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
                         if (tabId === tab.id && changeInfo.status === 'complete') {
@@ -126,7 +126,7 @@ export const messageHandlers = {
                 })
             }
 
-            // 发送消息到content script进行定位
+
             await browser.tabs.sendMessage(tab.id, {
                 type: 'LOCATE_HIGHLIGHT',
                 data: { id: message.data.id }

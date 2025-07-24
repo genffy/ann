@@ -4,21 +4,21 @@ import { TranslationConfig, TranslationRules } from './translate'
 
 export type RequiredFields<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
-// 基础消息类型
+
 export interface BaseMessage {
     type: string
     requestId?: string
     timestamp?: number
 }
 
-// 响应消息类型
+
 export interface ResponseMessage<T = any> extends BaseMessage {
     success: boolean
     data?: T
     error?: string
 }
 
-// 配置相关消息
+
 export interface GetConfigMessage extends BaseMessage {
     type: 'GET_CONFIG'
     configType: 'translation' | 'rules'
@@ -38,7 +38,7 @@ export interface ResetConfigMessage extends BaseMessage {
     type: 'RESET_CONFIG'
 }
 
-// 翻译相关消息
+
 export interface TranslateTextMessage extends BaseMessage {
     type: 'TRANSLATE_TEXT'
     text: string
@@ -53,7 +53,7 @@ export interface TranslateResponse {
     provider: string
 }
 
-// 高亮相关消息
+
 export interface GetHighlightsMessage extends BaseMessage {
     type: 'GET_HIGHLIGHTS'
     query?: HighlightQuery
@@ -117,7 +117,7 @@ export interface HighlightStatsResponse {
     deleted: number
 }
 
-// 笔记相关消息
+
 export interface GetNotesMessage extends BaseMessage {
     type: 'GET_NOTES'
     query?: {
@@ -169,7 +169,7 @@ export interface NoteStatsResponse {
     deleted: number
 }
 
-// 存储相关消息
+
 export interface GetStorageMessage extends BaseMessage {
     type: 'GET_STORAGE'
     key: string
@@ -186,7 +186,7 @@ export interface ClearStorageMessage extends BaseMessage {
     key?: string
 }
 
-// 截图相关消息
+
 export interface CaptureTabMessage extends BaseMessage {
     type: 'CAPTURE_VISIBLE_TAB'
     requestId: string
@@ -204,7 +204,7 @@ export interface ScreenshotErrorMessage extends BaseMessage {
     requestId: string
 }
 
-// 系统消息
+
 export interface TriggerScreenshotMessage extends BaseMessage {
     type: 'TRIGGER_SCREENSHOT'
     command: string
@@ -232,7 +232,7 @@ export interface SystemStatus {
     version: string
 }
 
-// 消息类型联合
+
 export type UIToBackgroundMessage =
     | GetConfigMessage
     | SetConfigMessage
@@ -275,14 +275,14 @@ export type BackgroundToUIMessage =
     | ScreenshotErrorMessage
     | TriggerScreenshotMessage
 
-// 消息处理器类型
+
 export type MessageHandler<T extends BaseMessage = BaseMessage> = (
     message: T,
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: ResponseMessage) => void
 ) => void | Promise<void>
 
-// 工具函数类型
+
 export interface MessageUtils {
     sendMessage: <T = any>(message: UIToBackgroundMessage) => Promise<ResponseMessage<T>>
     createResponse: <T = any>(success: boolean, data?: T, error?: string) => ResponseMessage<T>
